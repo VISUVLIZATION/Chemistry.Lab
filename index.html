@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChemLab 3D — Chemical Reaction Simulator</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #07111f;
+    color: #ffffff;
+    overflow-x: hidden;
+}
+
+header {
+    padding: 18px 25px;
+    background: #0b192b;
+    border-bottom: 1px solid #23354d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.logo span {
+    color: #42d9ff;
+}
+
+.header-status {
+    color: #91a7c0;
+    font-size: 13px;
+}
+
+.app {
+    display: grid;
+    grid-template-columns: 300px 1fr 330px;
+    min-height: calc(100vh - 70px);
+}
+
+/* LEFT PANEL */
+
+.sidebar {
+    background: #0b1727;
+    border-right: 1px solid #23354d;
+    padding: 18px;
+    overflow-y: auto;
+}
+
+.sidebar h2,
+.right-panel h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
+.search {
+    width: 100%;
+    padding: 12px;
+    border-radius: 9px;
+    border: 1px solid #30455e;
+    background: #07111f;
+    color: white;
+    outline: none;
+    margin-bottom: 14px;
+}
+
+.category {
+    margin: 14px 0 8px;
+    color: #6edfff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.substance {
+    background: #111f32;
+    border: 1px solid #263b55;
+    padding: 11px;
+    margin-bottom: 8px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.substance:hover {
+    border-color: #42d9ff;
+    transform: translateX(2px);
+}
+
+.substance-name {
+    font-weight: bold;
+}
+
+.formula {
+    color: #8ca6c0;
+    font-size: 13px;
+    margin-top: 3px;
+}
+
+.add-btn {
+    float: right;
+    background: #173b54;
+    border: 0;
+    color: #5fe2ff;
+    border-radius: 5px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+/* CENTER */
+
+.main {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.viewer {
+    position: relative;
+    height: 57vh;
+    min-height: 400px;
+    background:
+        radial-gradient(circle at center, #122b42 0%, #07111f 65%);
+    border-bottom: 1px solid #23354d;
+}
+
+#three-container {
+    width: 100%;
+    height: 100%;
+}
+
+.viewer-label {
+    position: absolute;
+    top: 16px;
+    left: 18px;
+    z-index: 5;
+    background: rgba(6,15,27,.8);
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: #b9d4ea;
+    font-size: 13px;
+}
+
+.reaction-area {
+    padding: 18px;
+}
+
+.reactants {
+    min-height: 95px;
+    border: 1px dashed #36506b;
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: #091523;
+}
+
+.empty {
+    color: #637c94;
+    font-size: 14px;
+}
+
+.reactant-card {
+    background: #13253a;
+    border: 1px solid #34516e;
+    border-radius: 10px;
+    padding: 9px 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reactant-card strong {
+    color: #65e4ff;
+}
+
+.remove {
+    border: 0;
+    background: #3c2029;
+    color: #ff9cae;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.plus {
+    font-size: 24px;
+    color: #7891aa;
+}
+
+.controls {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-top: 13px;
+}
+
+.condition {
+    border: 1px solid #344e68;
+    background: #101e30;
+    color: #d7e6f4;
+    padding: 9px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.condition.active {
+    border-color: #42d9ff;
+    background: #12394a;
+    color: #67e7ff;
+}
+
+.run {
+    margin-top: 14px;
+    width: 100%;
+    border: 0;
+    padding: 14px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #0ba7d3, #39e0a7);
+    color: #041018;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.run:hover {
+    filter: brightness(1.08);
+}
+
+.reset {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 9px;
+    background: #111f31;
+    border: 1px solid #30465e;
+    color: #9eb3c8;
+    cursor: pointer;
+}
+
+/* RIGHT */
+
+.right-panel {
+    background: #0b1727;
+    border-left: 1px solid #23354d;
+    padding: 18px;
+    overflow-y: auto;
+}
+
+.result {
+    background: #101f32;
+    border: 1px solid #2b425c;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.result h3 {
+    color: #5fe4ff;
+    margin-top: 0;
+}
+
+.equation {
+    background: #07111f;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 17px;
+    text-align: center;
+    margin: 12px 0;
+    color: #ffffff;
+}
+
+.condition-list {
+    color: #9db3c8;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.product {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 9px;
+    background: #102b2c;
+    border: 1px solid #2d6b69;
+}
+
+.warning {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #2b2110;
+    border: 1px solid #66501f;
+    color: #e8c97b;
+    font-size: 12px;
+}
+
+@media (max-width: 1000px) {
+    .app {
+        grid-template-columns: 240px 1fr;
+    }
+
+    .right-panel {
+        grid-column: 1 / -1;
+        border-left: 0;
+        border-top: 1px solid #23354d;
+    }
+}
+
+@media (max-width: 700px) {
+    .app {
+        display: block;
+    }
+
+    .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid #23354d;
+        max-height: 350px;
+    }
+
+    .viewer {
+        height: 50vh;
+    }
+
+    .header-status {
+        display: none;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🧪 Chem<span>Lab</span> 3D</div>
+    <div class="header-status">Educational Chemical Reaction Simulator — Version 1</div>
+</header>
+
+<div class="app">
+
+    <!-- LEFT -->
+    <aside class="sidebar">
+
+        <h2>Substances</h2>
+
+        <input
+            id="search"
+            class="search"
+            type="text"
+            placeholder="Search H2, oxygen, water..."
+        >
+
+        <div id="substanceList"></div>
+
+    </aside>
+
+
+    <!-- CENTER -->
+    <main class="main">
+
+        <section class="viewer">
+
+            <div class="viewer-label">
+                <span id="viewerTitle">Select a substance</span>
+            </div>
+
+            <div id="three-container"></div>
+
+        </section>
+
+
+        <section class="reaction-area">
+
+            <h2>Reactants</h2>
+
+            <div id="reactants" class="reactants">
+                <div class="empty">
+                    Select substances from the library.
+                </div>
+            </div>
+
+
+            <div class="controls">
+
+                <button class="condition" data-condition="heat">
+                    🔥 Heat
+                </button>
+
+                <button class="condition" data-condition="light">
+                    💡 Light
+                </button>
+
+                <button class="condition" data-condition="catalyst">
+                    ⚡ Catalyst
+                </button>
+
+                <button class="condition" data-condition="water">
+                    💧 Water
+                </button>
+
+                <button class="condition" data-condition="pressure">
+                    🌀 Pressure
+                </button>
+
+            </div>
+
+
+            <button class="run" onclick="runReaction()">
+                ▶ RUN REACTION
+            </button>
+
+            <button class="reset" onclick="resetExperiment()">
+                ↺ Reset Experiment
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <!-- RIGHT -->
+    <aside class="right-panel">
+
+        <h2>Reaction Result</h2>
+
+        <div id="result" class="result">
+
+            <h3>Waiting...</h3>
+
+            <p>
+                Build your reactant list and press
+                <b>RUN REACTION</b>.
+            </p>
+
+            <div class="warning">
+                This is an educational simulation.
+                It does not replace laboratory safety procedures.
+            </div>
+
+        </div>
+
+    </aside>
+
+</div>
+
+
+<!-- THREE.JS -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+
+<script>
+
+/* =========================================================
+   CHEMICAL DATABASE
+========================================================= */
+
+const substances = [
+
+    {
+        id: "h2",
+        name: "Hydrogen",
+        formula: "H₂",
+        category: "Elements",
+        atoms: ["H","H"]
+    },
+
+    {
+        id: "o2",
+        name: "Oxygen",
+        formula: "O₂",
+        category: "Elements",
+        atoms: ["O","O"]
+    },
+
+    {
+        id: "n2",
+        name: "Nitrogen",
+        formula: "N₂",
+        category: "Elements",
+        atoms: ["N","N"]
+    },
+
+    {
+        id: "cl2",
+        name: "Chlorine",
+        formula: "Cl₂",
+        category: "Elements",
+        atoms: ["Cl","Cl"]
+    },
+
+    {
+        id: "na",
+        name: "Sodium",
+        formula: "Na",
+        category: "Elements",
+        atoms: ["Na"]
+    },
+
+    {
+        id: "water",
+        name: "Water",
+        formula: "H₂O",
+        category: "Compounds",
+        atoms: ["O","H","H"]
+    },
+
+    {
+        id: "co2",
+        name: "Carbon Dioxide",
+        formula: "CO₂",
+        category: "Compounds",
+        atoms: ["C","O","O"]
+    },
+
+    {
+        id: "nh3",
+        name: "Ammonia",
+        formula: "NH₃",
+        category: "Compounds",
+        atoms: ["N","H","H","H"]
+    },
+
+    {
+        id: "nacl",
+        name: "Sodium Chloride",
+        formula: "NaCl",
+        category: "Compounds",
+        atoms: ["Na","Cl"]
+    },
+
+    {
+        id: "hcl",
+        name: "Hydrochloric Acid",
+        formula: "HCl",
+        category: "Acids",
+        atoms: ["H","Cl"]
+    },
+
+    {
+        id: "naoh",
+        name: "Sodium Hydroxide",
+        formula: "NaOH",
+        category: "Bases",
+        atoms: ["Na","O","H"]
+    },
+
+    {
+        id: "caco3",
+        name: "Calcium Carbonate",
+        formula: "CaCO₃",
+        category: "Compounds",
+        atoms: ["Ca","C","O","O","O"]
+    },
+
+    {
+        id: "cao",
+        name: "Calcium Oxide",
+        formula: "CaO",
+        category: "Compounds",
+        atoms: ["Ca","O"]
+    },
+
+    {
+        id: "ch4",
+        name: "Methane",
+        formula: "CH₄",
+        category: "Organic",
+        atoms: ["C","H","H","H","H"]
+    },
+
+    {
+        id: "c2h5oh",
+        name: "Ethanol",
+        formula: "C₂H₅OH",
+        category: "Organic",
+        atoms: ["C","C","O","H","H","H","H","H","H"]
+    },
+
+    {
+        id: "ch3cooh",
+        name: "Acetic Acid",
+        formula: "CH₃COOH",
+        category: "Organic",
+        atoms: ["C","C","O","O","H","H","H","H"]
+    }
+
+];
+
+
+/* =========================================================
+   REACTION DATABASE
+========================================================= */
+
+const reactions = [
+
+    {
+        reactants: ["h2","o2"],
+        conditions: ["heat"],
+        equation: "2H₂ + O₂ → 2H₂O",
+        product: "Water",
+        productFormula: "H₂O",
+        explanation:
+            "Hydrogen reacts with oxygen to form water."
+    },
+
+    {
+        reactants: ["n2","h2"],
+        conditions: ["catalyst","pressure"],
+        equation: "N₂ + 3H₂ ⇌ 2NH₃",
+        product: "Ammonia",
+        productFormula: "NH₃",
+        explanation:
+            "Nitrogen and hydrogen combine to form ammonia under suitable industrial conditions."
+    },
+
+    {
+        reactants: ["na","cl2"],
+        conditions: ["heat"],
+        equation: "2Na + Cl₂ → 2NaCl",
+        product: "Sodium Chloride",
+        productFormula: "NaCl",
+        explanation:
+            "Sodium and chlorine combine to form sodium chloride."
+    },
+
+    {
+        reactants: ["hcl","naoh"],
+        conditions: [],
+        equation: "HCl + NaOH → NaCl + H₂O",
+        product: "Sodium Chloride + Water",
+        productFormula: "NaCl + H₂O",
+        explanation:
+            "This is an acid-base neutralization reaction."
+    },
+
+    {
+        reactants: ["caco3"],
+        conditions: ["heat"],
+        equation: "CaCO₃ → CaO + CO₂",
+        product: "Calcium Oxide + Carbon Dioxide",
+        productFormula: "CaO + CO₂",
+        explanation:
+            "Heating calcium carbonate causes thermal decomposition."
+    },
+
+    {
+        reactants: ["cao","water"],
+        conditions: [],
+        equation: "CaO + H₂O → Ca(OH)₂",
+        product: "Calcium Hydroxide",
+        productFormula: "Ca(OH)₂",
+        explanation:
+            "Calcium oxide reacts with water to form calcium hydroxide."
+    },
+
+    {
+        reactants: ["ch4","o2"],
+        conditions: ["heat"],
+        equation: "CH₄ + 2O₂ → CO₂ + 2H₂O",
+        product: "Carbon Dioxide + Water",
+        productFormula: "CO₂ + H₂O",
+        explanation:
+            "Methane undergoes combustion in oxygen."
+    },
+
+    {
+        reactants: ["co2","water"],
+        conditions: [],
+        equation: "CO₂ + H₂O ⇌ H₂CO₃",
+        product: "Carbonic Acid",
+        productFormula: "H₂CO₃",
+        explanation:
+            "Carbon dioxide dissolves in water and establishes an equilibrium with carbonic acid."
+    },
+
+    {
+        reactants: ["h2","cl2"],
+        conditions: ["light"],
+        equation: "H₂ + Cl₂ → 2HCl",
+        product: "Hydrochloric Acid",
+        productFormula: "HCl",
+        explanation:
+            "Hydrogen and chlorine can react under light to form hydrogen chloride."
+    },
+
+    {
+        reactants: ["ch3cooh","naoh"],
+        conditions: [],
+        equation: "CH₃COOH + NaOH → CH₃COONa + H₂O",
+        product: "Sodium Acetate + Water",
+        productFormula: "CH₃COONa + H₂O",
+        explanation:
+            "Acetic acid reacts with sodium hydroxide in an acid-base neutralization."
+    }
+
+];
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let selectedReactants = [];
+let selectedConditions = [];
+
+let currentMolecule = null;
+
+
+/* =========================================================
+   SUBSTANCE LIBRARY UI
+========================================================= */
+
+function renderSubstances(filter = "") {
+
+    const container = document.getElementById("substanceList");
+
+    container.innerHTML = "";
+
+    const lower = filter.toLowerCase();
+
+    const filtered = substances.filter(s =>
+        s.name.toLowerCase().includes(lower) ||
+        s.formula.toLowerCase().includes(lower) ||
+        s.id.toLowerCase().includes(lower)
+    );
+
+    const categories = [...new Set(filtered.map(s => s.category))];
+
+    categories.forEach(category => {
+
+        const heading = document.createElement("div");
+        heading.className = "category";
+        heading.textContent = category;
+
+        container.appendChild(heading);
+
+        filtered
+            .filter(s => s.category === category)
+            .forEach(s => {
+
+                const div = document.createElement("div");
+
+                div.className = "substance";
+
+                div.innerHTML = `
+                    <button class="add-btn">+</button>
+                    <div class="substance-name">${s.name}</div>
+                    <div class="formula">${s.formula}</div>
+                `;
+
+                div.addEventListener("click", () => {
+
+                    addReactant(s.id);
+                    showMolecule(s);
+
+                });
+
+                div.querySelector(".add-btn")
+                    .addEventListener("click", e => {
+
+                        e.stopPropagation();
+
+                        addReactant(s.id);
+                        showMolecule(s);
+
+                    });
+
+                container.appendChild(div);
+
+            });
+
+    });
+
+}
+
+
+document.getElementById("search")
+    .addEventListener("input", e => {
+        renderSubstances(e.target.value);
+    });
+
+
+/* =========================================================
+   REACTANT SYSTEM
+========================================================= */
+
+function addReactant(id) {
+
+    selectedReactants.push(id);
+
+    renderReactants();
+
+}
+
+
+function removeReactant(index) {
+
+    selectedReactants.splice(index, 1);
+
+    renderReactants();
+
+}
+
+
+function renderReactants() {
+
+    const container = document.getElementById("reactants");
+
+    container.innerHTML = "";
+
+    if (selectedReactants.length === 0) {
+
+        container.innerHTML =
+            `<div class="empty">
+                Select substances from the library.
+            </div>`;
+
+        return;
+
+    }
+
+
+    selectedReactants.forEach((id, index) => {
+
+        const substance =
+            substances.find(s => s.id === id);
+
+        if (index > 0) {
+
+            const plus =
+                document.createElement("div");
+
+            plus.className = "plus";
+            plus.textContent = "+";
+
+            container.appendChild(plus);
+
+        }
+
+
+        const card =
+            document.createElement("div");
+
+        card.className = "reactant-card";
+
+        card.innerHTML = `
+            <strong>${substance.formula}</strong>
+            <span>${substance.name}</span>
+            <button class="remove">×</button>
+        `;
+
+
+        card.querySelector(".remove")
+            .addEventListener("click", () => {
+
+                removeReactant(index);
+
+            });
+
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+/* =========================================================
+   CONDITIONS
+========================================================= */
+
+document.querySelectorAll(".condition")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            const condition =
+                button.dataset.condition;
+
+            if (selectedConditions.includes(condition)) {
+
+                selectedConditions =
+                    selectedConditions.filter(
+                        c => c !== condition
+                    );
+
+                button.classList.remove("active");
+
+            } else {
+
+                selectedConditions.push(condition);
+
+                button.classList.add("active");
+
+            }
+
+        });
+
+    });
+
+
+/* =========================================================
+   REACTION ENGINE
+========================================================= */
+
+function arraysEqual(a,b) {
+
+    const A = [...a].sort();
+    const B = [...b].sort();
+
+    return JSON.stringify(A) === JSON.stringify(B);
+
+}
+
+
+function runReaction() {
+
+    if (selectedReactants.length === 0) {
+
+        showResult(
+            "No reactants selected",
+            "Select at least one substance."
+        );
+
+        return;
+    }
+
+
+    const reaction =
+        reactions.find(r => {
+
+            return arraysEqual(
+                r.reactants,
+                selectedReactants
+            );
+
+        });
+
+
+    if (!reaction) {
+
+        showResult(
+            "No reaction found",
+            "This Version 1 database does not contain a supported reaction for the selected reactants."
+        );
+
+        return;
+    }
+
+
+    const required =
+        reaction.conditions;
+
+
+    const missing =
+        required.filter(
+            c => !selectedConditions.includes(c)
+        );
+
+
+    if (missing.length > 0) {
+
+        const names = missing.map(formatCondition);
+
+        showResult(
+            "Reaction conditions incomplete",
+            `This reaction requires: ${names.join(", ")}.`
+        );
+
+        return;
+    }
+
+
+    showReactionResult(reaction);
+
+}
+
+
+function formatCondition(c) {
+
+    const names = {
+
+        heat: "🔥 Heat",
+        light: "💡 Light",
+        catalyst: "⚡ Catalyst",
+        water: "💧 Water",
+        pressure: "🌀 Pressure"
+
+    };
+
+    return names[c] || c;
+
+}
+
+
+/* =========================================================
+   RESULTS
+========================================================= */
+
+function showResult(title, message) {
+
+    document.getElementById("result").innerHTML = `
+
+        <h3>${title}</h3>
+
+        <p>${message}</p>
+
+        <div class="warning">
+            The simulator only reports reactions contained in
+            its educational reaction database.
+        </div>
+
+    `;
+
+}
+
+
+function showReactionResult(reaction) {
+
+    const conditionText =
+        reaction.conditions.length
+            ? reaction.conditions.map(formatCondition).join(" • ")
+            : "No special condition";
+
+    document.getElementById("result").innerHTML = `
+
+        <h3>⚗️ Reaction Found</h3>
+
+        <div class="equation">
+            ${reaction.equation}
+        </div>
+
+        <div class="condition-list">
+
+            <b>Conditions</b><br>
+
+            ${conditionText}
+
+        </div>
+
+        <div class="product">
+
+            <b>📦 Product</b>
+
+            <br><br>
+
+            ${reaction.product}
+
+            <br>
+
+            <strong>${reaction.productFormula}</strong>
+
+        </div>
+
+        <p>
+            ${reaction.explanation}
+        </p>
+
+        <div class="warning">
+            Educational simulation only. Chemical reactions
+            should not be performed outside an appropriate
+            supervised laboratory.
+        </div>
+
+    `;
+
+
+    showProductMolecule(reaction.productFormula);
+
+}
+
+
+/* =========================================================
+   THREE.JS 3D ENGINE
+========================================================= */
+
+let scene;
+let camera;
+let renderer;
+let moleculeGroup;
+
+const container =
+    document.getElementById("three-container");
+
+
+function initThree() {
+
+    scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0x07111f);
+
+
+    camera =
+        new THREE.PerspectiveCamera(
+            45,
+            container.clientWidth /
+            container.clientHeight,
+            0.1,
+            100
+        );
+
+    camera.position.z = 7;
+
+
+    renderer =
+        new THREE.WebGLRenderer({
+            antialias: true
+        });
+
+    renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, 2)
+    );
+
+    renderer.setSize(
+        container.clientWidth,
+        container.clientHeight
+    );
+
+    container.appendChild(renderer.domElement);
+
+
+    const ambient =
+        new THREE.AmbientLight(
+            0xffffff,
+            1.7
+        );
+
+    scene.add(ambient);
+
+
+    const light =
+        new THREE.DirectionalLight(
+            0xffffff,
+            2
+        );
+
+    light.position.set(4,5,6);
+
+    scene.add(light);
+
+
+    moleculeGroup =
+        new THREE.Group();
+
+    scene.add(moleculeGroup);
+
+
+    window.addEventListener("resize", resizeThree);
+
+
+    animate();
+
+}
+
+
+function resizeThree() {
+
+    if (!renderer) return;
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    camera.aspect = width / height;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width,height);
+
+}
+
+
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    if (moleculeGroup) {
+
+        moleculeGroup.rotation.y += 0.004;
+
+        moleculeGroup.rotation.x += 0.001;
+
+    }
+
+    renderer.render(scene,camera);
+
+}
+
+
+/* =========================================================
+   ATOM COLORS
+========================================================= */
+
+const atomColors = {
+
+    H: 0xffffff,
+    O: 0xff4b4b,
+    C: 0x555555,
+    N: 0x4b75ff,
+    Cl: 0x45d96b,
+    Na: 0xffd34d,
+    Ca: 0x9e9e9e
+
+};
+
+
+function createAtom(element, position) {
+
+    const geometry =
+        new THREE.SphereGeometry(
+            element === "H" ? 0.35 : 0.48,
+            32,
+            32
+        );
+
+    const material =
+        new THREE.MeshStandardMaterial({
+
+            color:
+                atomColors[element] ||
+                0x00aaff,
+
+            roughness: 0.3,
+            metalness: 0.1
+
+        });
+
+
+    const sphere =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+    sphere.position.copy(position);
+
+    return sphere;
+
+}
+
+
+function createBond(a,b) {
+
+    const direction =
+        new THREE.Vector3()
+            .subVectors(b,a);
+
+    const length =
+        direction.length();
+
+    const geometry =
+        new THREE.CylinderGeometry(
+            0.09,
+            0.09,
+            length,
+            16
+        );
+
+    const material =
+        new THREE.MeshStandardMaterial({
+            color: 0xaaaaaa
+        });
+
+
+    const cylinder =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+
+    cylinder.position
+        .copy(a)
+        .add(b)
+        .multiplyScalar(0.5);
+
+
+    cylinder.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0,1,0),
+        direction.normalize()
+    );
+
+
+    return cylinder;
+
+}
+
+
+/* =========================================================
+   MOLECULE VISUALIZER
+========================================================= */
+
+function clearMolecule() {
+
+    while (moleculeGroup.children.length > 0) {
+
+        moleculeGroup.remove(
+            moleculeGroup.children[0]
+        );
+
+    }
+
+}
+
+
+function showMolecule(substance) {
+
+    clearMolecule();
+
+    document.getElementById("viewerTitle")
+        .textContent =
+        `${substance.name} — ${substance.formula}`;
+
+
+    const positions = [];
+
+
+    const atoms = substance.atoms;
+
+
+    atoms.forEach((atom,index) => {
+
+        let angle =
+            (index / atoms.length) *
+            Math.PI * 2;
+
+        let radius =
+            atoms.length <= 2
+                ? 0.8
+                : 1.0;
+
+
+        const position =
+            new THREE.Vector3(
+
+                Math.cos(angle) * radius,
+
+                Math.sin(angle) * radius,
+
+                (index % 2) * 0.25
+
+            );
+
+
+        positions.push(position);
+
+
+        moleculeGroup.add(
+            createAtom(atom,position)
+        );
+
+    });
+
+
+    for (let i = 1; i < positions.length; i++) {
+
+        moleculeGroup.add(
+            createBond(
+                positions[0],
+                positions[i]
+            )
+        );
+
+    }
+
+}
+
+
+function showProductMolecule(formula) {
+
+    clearMolecule();
+
+    document.getElementById("viewerTitle")
+        .textContent =
+        `Product — ${formula}`;
+
+
+    /*
+       Simple visual representation.
+       Version 2 can use proper molecular
+       geometry and molecular models.
+    */
+
+    let atoms = [];
+
+
+    if (formula.includes("H₂O")) {
+
+        atoms = ["O","H","H"];
+
+    } else if (formula.includes("NH₃")) {
+
+        atoms = ["N","H","H","H"];
+
+    } else if (formula.includes("NaCl")) {
+
+        atoms = ["Na","Cl"];
+
+    } else if (formula.includes("CO₂")) {
+
+        atoms = ["C","O","O"];
+
+    } else if (formula.includes("CaO")) {
+
+        atoms = ["Ca","O"];
+
+    } else {
+
+        atoms = ["C","O","H"];
+
+    }
+
+
+    const positions = [];
+
+
+    atoms.forEach((atom,index) => {
+
+        const angle =
+            (index / atoms.length) *
+            Math.PI * 2;
+
+
+        const position =
+            new THREE.Vector3(
+
+                Math.cos(angle) * 1.0,
+
+                Math.sin(angle) * 1.0,
+
+                0
+
+            );
+
+
+        positions.push(position);
+
+
+        moleculeGroup.add(
+            createAtom(atom,position)
+        );
+
+    });
+
+
+    for (let i = 1; i < positions.length; i++) {
+
+        moleculeGroup.add(
+            createBond(
+                positions[0],
+                positions[i]
+            )
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+function resetExperiment() {
+
+    selectedReactants = [];
+
+    selectedConditions = [];
+
+
+    document
+        .querySelectorAll(".condition")
+        .forEach(button =>
+            button.classList.remove("active")
+        );
+
+
+    renderReactants();
+
+
+    clearMolecule();
+
+
+    document.getElementById("viewerTitle")
+        .textContent =
+        "Select a substance";
+
+
+    document.getElementById("result")
+        .innerHTML = `
+
+        <h3>Waiting...</h3>
+
+        <p>
+            Build your reactant list and press
+            <b>RUN REACTION</b>.
+        </p>
+
+        <div class="warning">
+            This is an educational simulation.
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+renderSubstances();
+
+renderReactants();
+
+initThree();
+
+</script>
+
+</body>
+</html>
