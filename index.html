@@ -2,657 +2,467 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width,
-               initial-scale=1,
-               maximum-scale=1,
-               user-scalable=no,
-               viewport-fit=cover">
-
-<meta name="theme-color" content="#061421">
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ChemLab 3D</title>
 
 <style>
 *{
     box-sizing:border-box;
-}
-
-html,body{
     margin:0;
-    width:100%;
-    height:100%;
-    font-family:Arial,Helvetica,sans-serif;
-    background:#061421;
-    color:#eafcff;
+    padding:0;
 }
 
 body{
-    overflow:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#07111f;
+    color:#fff;
+    min-height:100vh;
 }
-
-button,
-input{
-    font:inherit;
-}
-
-button{
-    cursor:pointer;
-}
-
-/* =========================
-   MAIN LAYOUT
-========================= */
 
 .app{
-    width:100%;
-    height:100vh;
-    height:100dvh;
+    max-width:1400px;
+    margin:auto;
+    padding:20px;
+}
 
+header{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+header h1{
+    font-size:clamp(28px,5vw,48px);
+    background:linear-gradient(90deg,#4fdcff,#8b7cff,#ff65c8);
+    -webkit-background-clip:text;
+    color:transparent;
+    margin-bottom:8px;
+}
+
+header p{
+    color:#9fb1c8;
+}
+
+/* MAIN */
+.main{
     display:grid;
-    grid-template-columns:310px 1fr;
-
-    overflow:hidden;
+    grid-template-columns:320px 1fr;
+    gap:18px;
 }
 
-/* =========================
-   SIDEBAR
-========================= */
+.panel,
+.viewer-card{
+    background:rgba(15,29,48,.92);
+    border:1px solid rgba(120,170,220,.18);
+    border-radius:20px;
+    box-shadow:0 15px 50px rgba(0,0,0,.3);
+}
 
-.sidebar{
-    background:linear-gradient(
-        180deg,
-        #071b2b,
-        #06131f
-    );
-
-    border-right:1px solid #17364c;
-
+/* LEFT */
+.panel{
     padding:18px;
-
-    overflow-y:auto;
-    overflow-x:hidden;
-}
-
-.logo{
-    font-size:27px;
-    font-weight:800;
-    margin-bottom:16px;
-    letter-spacing:-1px;
-}
-
-.logo span{
-    color:#19d9d4;
 }
 
 .search{
     width:100%;
-
-    padding:12px 13px;
-
-    border:1px solid #24485e;
+    padding:13px 15px;
     border-radius:12px;
-
-    background:#0a2233;
+    border:1px solid #29435f;
+    background:#091827;
     color:white;
-
     outline:none;
-
-    margin-bottom:16px;
+    margin-bottom:15px;
 }
 
 .search:focus{
-    border-color:#19d9d4;
+    border-color:#4fdcff;
 }
 
-.group-title{
-    font-size:12px;
-    color:#28d7d2;
+.category{
+    margin-bottom:16px;
+}
 
-    font-weight:800;
-    letter-spacing:.8px;
-
-    margin:16px 2px 8px;
-
-    text-transform:uppercase;
+.category h3{
+    color:#70dfff;
+    font-size:14px;
+    margin-bottom:8px;
 }
 
 .substances{
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
+    gap:7px;
 }
 
 .substance{
-    border:1px solid #21445a;
-
-    background:
-        linear-gradient(
-            145deg,
-            #0c2a3d,
-            #092033
-        );
-
-    border-radius:11px;
-
-    padding:11px 9px;
-
+    width:100%;
+    border:1px solid #203b55;
+    background:#0b1b2c;
+    color:#dcecff;
+    padding:10px;
+    border-radius:10px;
+    cursor:pointer;
     text-align:left;
-
-    color:white;
-
-    min-height:66px;
-
-    transition:
-        transform .15s,
-        border-color .15s,
-        background .15s;
+    transition:.2s;
 }
 
 .substance:hover{
+    background:#102b43;
+    border-color:#4fdcff;
     transform:translateY(-1px);
-    border-color:#20d9d5;
 }
 
 .substance.selected{
-    border-color:#20d9d5;
-    background:#10354a;
+    background:#123b52;
+    border-color:#5de1ff;
+    box-shadow:0 0 12px rgba(79,220,255,.18);
 }
 
-.formula{
-    font-weight:800;
-    color:#4de9e4;
-    font-size:16px;
+/* RIGHT */
+.viewer-card{
+    padding:15px;
 }
-
-.sname{
-    font-size:11px;
-    color:#b7ccd7;
-
-    margin-top:4px;
-
-    line-height:1.2;
-}
-
-.note{
-    font-size:10px;
-    color:#6f95a5;
-
-    margin-top:12px;
-
-    line-height:1.4;
-}
-
-.empty{
-    padding:12px;
-    color:#7598a6;
-    font-size:12px;
-}
-
-/* =========================
-   MAIN
-========================= */
-
-.main{
-    min-width:0;
-
-    display:grid;
-
-    grid-template-rows:
-        auto
-        minmax(260px,1fr)
-        auto;
-
-    overflow:hidden;
-}
-
-/* =========================
-   TOP BAR
-========================= */
-
-.topbar{
-    padding:15px 18px 10px;
-
-    display:flex;
-
-    justify-content:space-between;
-    align-items:center;
-
-    gap:12px;
-
-    border-bottom:1px solid #153248;
-
-    background:#071a29;
-}
-
-.subtitle{
-    font-size:11px;
-    color:#7598a6;
-    margin-top:3px;
-}
-
-.badge{
-    font-size:12px;
-
-    border:1px solid #275067;
-
-    border-radius:999px;
-
-    padding:7px 11px;
-
-    color:#b9d8e5;
-
-    white-space:nowrap;
-}
-
-/* =========================
-   VIEWER
-========================= */
 
 .viewer{
     position:relative;
-
-    min-height:0;
-
+    height:510px;
+    min-height:350px;
     overflow:hidden;
-
+    border-radius:17px;
     background:
-        radial-gradient(
-            circle at 50% 45%,
-            #0e3349 0,
-            #071b2b 42%,
-            #030d15 100%
-        );
+        radial-gradient(circle at 50% 45%,#152e49 0,#0a1728 42%,#040b14 100%);
+    border:1px solid #213c56;
 }
 
-#canvas{
-    display:block;
-
+canvas{
     width:100%;
     height:100%;
-
+    display:block;
     touch-action:none;
 }
 
-/* =========================
-   STATUS
-========================= */
-
-.status{
+.viewer-info{
     position:absolute;
-
-    top:14px;
-    left:50%;
-
-    transform:translateX(-50%);
-
-    padding:8px 13px;
-
-    border-radius:999px;
-
-    background:rgba(5,20,31,.78);
-
-    border:1px solid #28556c;
-
-    color:#9ed7e3;
-
+    left:15px;
+    top:15px;
+    z-index:5;
+    padding:9px 12px;
+    border-radius:10px;
+    background:rgba(3,10,18,.65);
+    border:1px solid rgba(130,190,230,.2);
     font-size:12px;
-
-    z-index:4;
-
-    backdrop-filter:blur(5px);
-
-    white-space:nowrap;
+    color:#a9c4dc;
 }
 
-.viewer-help{
-    position:absolute;
-
-    right:12px;
-    bottom:12px;
-
-    color:#84aeba;
-
-    font-size:11px;
-
-    background:rgba(4,16,25,.65);
-
-    padding:7px 9px;
-
-    border-radius:8px;
-}
-
-/* =========================
-   HEAT EFFECT
-========================= */
-
+/* HEAT */
 .heat{
     position:absolute;
-
-    left:0;
-    right:0;
-    bottom:0;
-
-    height:0;
-
+    left:50%;
+    bottom:12px;
+    width:150px;
+    height:115px;
+    transform:translateX(-50%);
     pointer-events:none;
-
-    z-index:3;
-
-    overflow:hidden;
+    opacity:0;
+    transition:opacity .3s;
+    z-index:4;
 }
 
 .heat.on{
-    height:100%;
-
-    background:
-        linear-gradient(
-            to top,
-            rgba(255,76,0,.18),
-            transparent 62%
-        );
-
-    animation:heatPulse .75s infinite alternate;
+    opacity:1;
 }
 
-.flame{
+.heat-source{
     position:absolute;
-
-    bottom:-8px;
-
-    width:70px;
-    height:95px;
-
-    background:
-        radial-gradient(
-            ellipse at 50% 75%,
-            #fff 0 7%,
-            #ffd83d 8% 25%,
-            #ff7b00 26% 55%,
-            rgba(255,50,0,.1) 56%
-        );
-
-    border-radius:50% 50% 45% 55%;
-
-    filter:blur(3px);
-
-    animation:flame .55s infinite alternate;
+    left:50%;
+    bottom:0;
+    width:90px;
+    height:26px;
+    transform:translateX(-50%);
+    border-radius:50%;
+    background:radial-gradient(
+        ellipse,
+        rgba(255,245,160,.95),
+        rgba(255,145,35,.75) 38%,
+        rgba(255,55,20,.35) 65%,
+        transparent 75%
+    );
+    filter:blur(2px);
+    animation:heatSource .7s ease-in-out infinite alternate;
 }
 
-.flame:nth-child(1){
-    left:10%;
+.heat-wave{
+    position:absolute;
+    left:50%;
+    bottom:20px;
+    width:38px;
+    height:65px;
+    border:2px solid rgba(255,190,75,.65);
+    border-color:rgba(255,190,75,.65) transparent transparent transparent;
+    border-radius:50%;
+    transform:translateX(-50%);
+    animation:heatWave 1.3s ease-in-out infinite;
 }
 
-.flame:nth-child(2){
-    left:28%;
+.heat-wave:nth-child(3){
+    width:55px;
+    height:78px;
     animation-delay:.2s;
 }
 
-.flame:nth-child(3){
-    left:48%;
-    animation-delay:.08s;
+.heat-wave:nth-child(4){
+    width:72px;
+    height:92px;
+    animation-delay:.4s;
 }
 
-.flame:nth-child(4){
-    left:68%;
-    animation-delay:.28s;
+.heat-particle{
+    position:absolute;
+    bottom:20px;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:#ffd36a;
+    box-shadow:0 0 9px #ff9f38;
+    animation:thermalRise 1.5s linear infinite;
 }
 
-.flame:nth-child(5){
-    left:84%;
-    animation-delay:.14s;
+.heat-particle:nth-child(5){
+    left:30%;
+    animation-delay:.1s;
 }
 
-@keyframes flame{
-    from{
-        transform:
-            scaleY(.75)
-            translateY(8px)
-            rotate(-3deg);
+.heat-particle:nth-child(6){
+    left:43%;
+    animation-delay:.5s;
+}
+
+.heat-particle:nth-child(7){
+    left:58%;
+    animation-delay:.8s;
+}
+
+.heat-particle:nth-child(8){
+    left:70%;
+    animation-delay:.3s;
+}
+
+@keyframes heatSource{
+    from{transform:translateX(-50%) scale(.9)}
+    to{transform:translateX(-50%) scale(1.12)}
+}
+
+@keyframes heatWave{
+    0%{
+        opacity:0;
+        transform:translateX(-50%) translateY(15px) scale(.65);
     }
-
-    to{
-        transform:
-            scaleY(1.12)
-            translateY(-5px)
-            rotate(4deg);
+    45%{opacity:.8}
+    100%{
+        opacity:0;
+        transform:translateX(-50%) translateY(-25px) scale(1.2);
     }
 }
 
-@keyframes heatPulse{
-    from{
-        opacity:.55;
+@keyframes thermalRise{
+    0%{
+        opacity:0;
+        transform:translateY(0) scale(.6);
     }
-
-    to{
-        opacity:1;
+    20%{opacity:1}
+    100%{
+        opacity:0;
+        transform:translateY(-80px) scale(1);
     }
 }
 
-/* =========================
-   BOTTOM CONTROL PANEL
-========================= */
+/* REACTION PULSE */
+.viewer.reacting::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    background:radial-gradient(
+        circle at 50% 48%,
+        rgba(255,196,75,.22),
+        rgba(255,92,30,.08) 35%,
+        transparent 70%
+    );
+    animation:reactionFlash .9s ease-out;
+}
 
+@keyframes reactionFlash{
+    0%{
+        opacity:0;
+        transform:scale(.92);
+    }
+    18%{opacity:1}
+    100%{
+        opacity:0;
+        transform:scale(1.08);
+    }
+}
+
+/* BOTTOM */
 .bottom{
-    padding:12px 18px 15px;
-
-    background:#071a29;
-
-    border-top:1px solid #153248;
+    margin-top:15px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
 }
 
-.label{
-    font-size:11px;
+.box{
+    background:#091827;
+    border:1px solid #203b55;
+    border-radius:15px;
+    padding:15px;
+}
 
-    color:#7fa8b8;
-
-    text-transform:uppercase;
-
-    font-weight:800;
-
-    letter-spacing:.8px;
-
-    margin:5px 0 7px;
+.box h3{
+    font-size:14px;
+    color:#70dfff;
+    margin-bottom:10px;
 }
 
 .reactants{
+    min-height:55px;
     display:flex;
-
     flex-wrap:wrap;
-
-    gap:7px;
-
-    min-height:42px;
+    gap:8px;
 }
 
 .chip{
-    background:#0d3043;
-
-    border:1px solid #28556c;
-
-    border-radius:9px;
-
-    padding:8px 10px;
-
-    font-size:12px;
-}
-
-.chip button{
-    background:none;
-
-    border:0;
-
-    color:#8fb8c7;
-
-    margin-left:5px;
+    padding:8px 11px;
+    border-radius:20px;
+    background:#12334a;
+    border:1px solid #2d6d8d;
+    color:#dff8ff;
+    font-size:13px;
 }
 
 .conditions{
     display:flex;
-
-    gap:7px;
-
     flex-wrap:wrap;
-
-    margin:7px 0 10px;
+    gap:8px;
 }
 
 .condition{
-    border:1px solid #28536a;
-
-    background:#0b293b;
-
-    color:#d9eef3;
-
-    border-radius:9px;
-
-    padding:8px 11px;
+    padding:9px 13px;
+    border-radius:10px;
+    background:#0d2134;
+    border:1px solid #24445e;
+    color:#bdd1e5;
+    cursor:pointer;
 }
 
 .condition.active{
-    border-color:#ffb52e;
-
-    background:#3a2a0b;
-
-    color:#ffd66b;
+    background:#47351a;
+    border-color:#ffbb55;
+    color:#ffe2a6;
 }
 
-.run{
-    width:100%;
+.actions{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+}
 
+button.run,
+button.reset{
+    flex:1;
     border:0;
-
-    border-radius:10px;
-
     padding:13px;
-
-    background:
-        linear-gradient(
-            90deg,
-            #16d8db,
-            #27c9f2
-        );
-
-    color:#04202a;
-
-    font-weight:800;
+    border-radius:12px;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:15px;
 }
 
-.reset{
-    margin-top:7px;
+button.run{
+    background:linear-gradient(135deg,#25b7e9,#655cf5);
+    color:white;
+}
 
-    width:100%;
+button.reset{
+    background:#17283a;
+    color:#bfd2e5;
+    border:1px solid #2a455e;
+}
 
-    border:1px solid #28536a;
-
-    border-radius:10px;
-
-    padding:9px;
-
-    background:#0a2232;
-
-    color:#bfe0e9;
+button:hover{
+    filter:brightness(1.1);
 }
 
 .result{
-    margin-top:10px;
+    margin-top:15px;
+    padding:15px;
+    border-radius:14px;
+    background:#081522;
+    border:1px solid #203b55;
+}
 
-    padding:10px;
+.result-label{
+    font-size:12px;
+    color:#7794ad;
+    margin-bottom:6px;
+}
 
-    border-radius:9px;
+.result-equation{
+    font-size:clamp(17px,3vw,25px);
+    color:#fff;
+    font-weight:bold;
+    word-break:break-word;
+}
 
-    background:#0b2637;
-
-    border:1px solid #234c61;
-
+.status{
+    margin-top:8px;
     font-size:13px;
-
-    display:none;
+    color:#8ca6bd;
 }
 
-.result.show{
-    display:block;
-}
-
-.ok{
-    color:#56eee5;
-    font-weight:800;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media(max-width:850px){
-
-    .app{
-        grid-template-columns:225px 1fr;
-    }
-
-    .sidebar{
-        padding:12px;
-    }
-
-    .substances{
-        grid-template-columns:1fr;
-    }
-
-    .logo{
-        font-size:22px;
-    }
-}
-
-@media(max-width:620px){
-
-    .app{
-        grid-template-columns:1fr;
-
-        grid-template-rows:
-            39%
-            61%;
-    }
-
-    .sidebar{
-        border-right:0;
-
-        border-bottom:1px solid #17364c;
-    }
-
-    .substances{
-        grid-template-columns:
-            repeat(2,1fr);
-    }
-
-    .sidebar{
-        overflow:auto;
-    }
-
+/* MOBILE */
+@media(max-width:900px){
     .main{
-        grid-template-rows:
-            48px
-            minmax(180px,1fr)
-            auto;
+        grid-template-columns:1fr;
     }
 
-    .topbar{
-        padding:8px 11px;
+    .panel{
+        order:2;
+    }
+
+    .viewer-card{
+        order:1;
     }
 
     .bottom{
-        padding:
-            9px
-            11px
-            calc(10px + env(safe-area-inset-bottom));
+        grid-template-columns:1fr;
     }
 
-    .viewer-help{
-        display:none;
+    .viewer{
+        height:430px;
+    }
+}
+
+@media(max-width:550px){
+    .app{
+        padding:10px;
     }
 
-    .badge{
-        font-size:10px;
-        padding:6px 8px;
+    .viewer{
+        height:360px;
+    }
+
+    .actions{
+        flex-direction:column;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+    *,
+    *::before,
+    *::after{
+        animation-duration:.001ms !important;
+        animation-iteration-count:1 !important;
+        scroll-behavior:auto !important;
     }
 }
 </style>
@@ -662,2569 +472,1663 @@ button{
 
 <div class="app">
 
-<!-- ======================================================
-     SIDEBAR
-====================================================== -->
+<header>
+    <h1>⚗️ ChemLab 3D</h1>
+    <p>Interactive Chemical Reaction Simulator</p>
+</header>
 
-<aside class="sidebar">
+<div class="main">
 
-    <div class="logo">
-        Chem<span>Lab</span> 3D
-    </div>
+<!-- LEFT PANEL -->
+<div class="panel">
 
-    <input
-        id="search"
-        class="search"
-        type="text"
-        placeholder="Search substances..."
-        autocomplete="off"
-    >
+<input
+    id="search"
+    class="search"
+    type="text"
+    placeholder="Search substance..."
+>
 
-    <div id="library"></div>
-
-    <div class="note">
-        Educational simulation only.
-        The simulator does not provide real laboratory
-        procedures, quantities, or experimental instructions.
-    </div>
-
-</aside>
-
-
-<!-- ======================================================
-     MAIN
-====================================================== -->
-
-<main class="main">
-
-    <!-- TOP -->
-
-    <div class="topbar">
-
-        <div>
-
-            <b>Reaction Laboratory</b>
-
-            <div class="subtitle">
-                Select substances, conditions and simulate
-            </div>
-
-        </div>
-
-        <div class="badge">
-            Standalone Canvas Mode
-        </div>
-
-    </div>
-
-
-    <!-- VIEWER -->
-
-    <section class="viewer">
-
-        <canvas id="canvas"></canvas>
-
-        <div
-            id="status"
-            class="status"
-        >
-            Ready — select reactants
-        </div>
-
-        <!-- HEAT -->
-
-        <div
-            id="heat"
-            class="heat"
-        >
-
-            <div class="flame"></div>
-            <div class="flame"></div>
-            <div class="flame"></div>
-            <div class="flame"></div>
-            <div class="flame"></div>
-
-        </div>
-
-        <div class="viewer-help">
-            Drag = rotate · Wheel/pinch = zoom
-        </div>
-
-    </section>
-
-
-    <!-- CONTROL PANEL -->
-
-    <section class="bottom">
-
-        <div class="label">
-            Reactants
-        </div>
-
-        <div
-            id="reactants"
-            class="reactants"
-        >
-
-            <span
-                style="
-                    color:#7898a6;
-                    font-size:12px;
-                "
-            >
-                Choose substances from the left.
-            </span>
-
-        </div>
-
-
-        <div class="label">
-            Conditions
-        </div>
-
-
-        <div class="conditions">
-
-            <button
-                class="condition"
-                data-condition="heat"
-            >
-                🔥 Heat
-            </button>
-
-            <button
-                class="condition"
-                data-condition="catalyst"
-            >
-                ⚗ Catalyst
-            </button>
-
-            <button
-                class="condition"
-                data-condition="light"
-            >
-                💡 Light
-            </button>
-
-            <button
-                class="condition"
-                data-condition="pressure"
-            >
-                🧪 Pressure
-            </button>
-
-        </div>
-
-
-        <button
-            class="run"
-            onclick="runReaction()"
-        >
-            ▶ Run Simulation
-        </button>
-
-
-        <button
-            class="reset"
-            onclick="resetExperiment()"
-        >
-            Reset
-        </button>
-
-
-        <div
-            id="result"
-            class="result"
-        ></div>
-
-    </section>
-
-</main>
+<div id="substanceList"></div>
 
 </div>
 
+<!-- RIGHT -->
+<div class="viewer-card">
+
+<div id="viewer" class="viewer">
+
+    <canvas id="canvas"></canvas>
+
+    <div class="viewer-info">
+        Drag to rotate • Scroll / pinch to zoom
+    </div>
+
+    <div id="heat" class="heat" aria-hidden="true">
+        <div class="heat-source"></div>
+        <div class="heat-wave"></div>
+        <div class="heat-wave"></div>
+        <div class="heat-wave"></div>
+        <div class="heat-particle"></div>
+        <div class="heat-particle"></div>
+        <div class="heat-particle"></div>
+        <div class="heat-particle"></div>
+    </div>
+
+</div>
+
+<div class="bottom">
+
+<div class="box">
+
+<h3>🧪 Reactants</h3>
+
+<div id="reactants" class="reactants">
+    <span style="color:#718ba3;font-size:13px;">
+        Select substances from the left
+    </span>
+</div>
+
+</div>
+
+<div class="box">
+
+<h3>⚙️ Conditions</h3>
+
+<div class="conditions">
+
+<button
+    class="condition"
+    data-condition="heat"
+    type="button"
+>
+🔥 Heat
+</button>
+
+<button
+    class="condition"
+    data-condition="catalyst"
+    type="button"
+>
+⚗ Catalyst
+</button>
+
+<button
+    class="condition"
+    data-condition="light"
+    type="button"
+>
+💡 Light
+</button>
+
+<button
+    class="condition"
+    data-condition="pressure"
+    type="button"
+>
+⬆ Pressure
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="actions">
+
+<button id="runButton" class="run" type="button">
+▶ Run Reaction
+</button>
+
+<button id="resetButton" class="reset" type="button">
+↻ Reset
+</button>
+
+</div>
+
+<div class="result">
+
+<div class="result-label">
+Reaction Result
+</div>
+
+<div id="resultEquation" class="result-equation">
+Select reactants and run a reaction
+</div>
+
+<div id="status" class="status">
+Ready
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
 
 <script>
-"use strict";
 
-/* =========================================================
-   CHEMLAB 3D
-   ---------------------------------------------------------
-   IMPORTANT:
-   This version does NOT use:
-   - Three.js
-   - WebGL
-   - CDN
-   - external JavaScript libraries
-
-   The molecular display is rendered directly using
-   the browser's built-in HTML5 Canvas.
-========================================================= */
-
-
-/* =========================================================
-   SUBSTANCE DATABASE
-========================================================= */
+/* =========================
+   SUBSTANCES
+========================= */
 
 const substances = [
 
-    /* ================= ACIDS & BASES ================= */
-
-    {
-        id:"HCl",
-        f:"HCl",
-        n:"Dilute Hydrochloric acid",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"HClc",
-        f:"HCl",
-        n:"Concentrated Hydrochloric acid",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"H2SO4",
-        f:"H₂SO₄",
-        n:"Dilute Sulfuric acid",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"H2SO4c",
-        f:"H₂SO₄",
-        n:"Concentrated Sulfuric acid",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"HNO3",
-        f:"HNO₃",
-        n:"Dilute Nitric acid",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"HNO3c",
-        f:"HNO₃",
-        n:"Concentrated Nitric acid",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"CH3COOH",
-        f:"CH₃COOH",
-        n:"Acetic acid",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"NaOH",
-        f:"NaOH",
-        n:"Sodium hydroxide",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"KOH",
-        f:"KOH",
-        n:"Potassium hydroxide",
-        g:"Acids & Bases"
-    },
-
-    {
-        id:"NH3",
-        f:"NH₃",
-        n:"Ammonia solution",
-        g:"Acids & Bases"
-    },
-
-
-    /* ================= VOLUMETRIC ANALYSIS ================= */
-
-    {
-        id:"H2C2O4",
-        f:"H₂C₂O₄",
-        n:"Oxalic acid",
-        g:"Volumetric Analysis"
-    },
-
-    {
-        id:"Fe2",
-        f:"Fe²⁺",
-        n:"Ferrous ion",
-        g:"Volumetric Analysis"
-    },
-
-    {
-        id:"KMnO4",
-        f:"KMnO₄",
-        n:"Potassium permanganate",
-        g:"Volumetric Analysis"
-    },
-
-    {
-        id:"K2Cr2O7",
-        f:"K₂Cr₂O₇",
-        n:"Potassium dichromate",
-        g:"Volumetric Analysis"
-    },
-
-    {
-        id:"Na2CO3",
-        f:"Na₂CO₃",
-        n:"Sodium carbonate",
-        g:"Volumetric Analysis"
-    },
-
-    {
-        id:"Na2S2O3",
-        f:"Na₂S₂O₃",
-        n:"Sodium thiosulfate",
-        g:"Volumetric Analysis"
-    },
-
-    {
-        id:"I2",
-        f:"I₂",
-        n:"Iodine",
-        g:"Volumetric Analysis"
-    },
-
-    {
-        id:"starch",
-        f:"Starch",
-        n:"Starch indicator",
-        g:"Volumetric Analysis"
-    },
-
-
-    /* ================= SALT ANALYSIS ================= */
-
-    {
-        id:"AgNO3",
-        f:"AgNO₃",
-        n:"Silver nitrate",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"BaCl2",
-        f:"BaCl₂",
-        n:"Barium chloride",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"NH4Cl",
-        f:"NH₄Cl",
-        n:"Ammonium chloride",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"NH4OH",
-        f:"NH₄OH",
-        n:"Ammonium hydroxide",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"Na2S",
-        f:"Na₂S",
-        n:"Sodium sulfide",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"HNO3d",
-        f:"HNO₃",
-        n:"Nitric acid reagent",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"HClr",
-        f:"HCl",
-        n:"Hydrochloric acid reagent",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"KI",
-        f:"KI",
-        n:"Potassium iodide",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"KSCN",
-        f:"KSCN",
-        n:"Potassium thiocyanate",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"PbNO3",
-        f:"Pb(NO₃)₂",
-        n:"Lead nitrate",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"CuSO4",
-        f:"CuSO₄",
-        n:"Copper sulfate",
-        g:"Salt Analysis"
-    },
-
-    {
-        id:"FeCl3",
-        f:"FeCl₃",
-        n:"Ferric chloride",
-        g:"Salt Analysis"
-    },
-
-
-    /* ================= ORGANIC TESTS ================= */
-
-    {
-        id:"Tollens",
-        f:"[Ag(NH₃)₂]⁺",
-        n:"Tollens reagent",
-        g:"Organic Tests"
-    },
-
-    {
-        id:"Fehling",
-        f:"Fehling",
-        n:"Fehling solution",
-        g:"Organic Tests"
-    },
-
-    {
-        id:"Benedict",
-        f:"Benedict",
-        n:"Benedict solution",
-        g:"Organic Tests"
-    },
-
-    {
-        id:"2_4DNP",
-        f:"2,4-DNP",
-        n:"2,4-Dinitrophenylhydrazine",
-        g:"Organic Tests"
-    },
-
-    {
-        id:"NaHCO3",
-        f:"NaHCO₃",
-        n:"Sodium bicarbonate",
-        g:"Organic Tests"
-    },
-
-    {
-        id:"Br2",
-        f:"Br₂",
-        n:"Bromine reagent",
-        g:"Organic Tests"
-    },
-
-    {
-        id:"Iodoform",
-        f:"I₂/NaOH",
-        n:"Iodoform reagent",
-        g:"Organic Tests"
-    },
-
-
-    /* ================= ORGANIC SUBSTANCES ================= */
-
-    {
-        id:"Glucose",
-        f:"C₆H₁₂O₆",
-        n:"Glucose",
-        g:"Organic Substances"
-    },
-
-    {
-        id:"Ethanol",
-        f:"C₂H₅OH",
-        n:"Ethanol",
-        g:"Organic Substances"
-    },
-
-    {
-        id:"Acetone",
-        f:"CH₃COCH₃",
-        n:"Acetone",
-        g:"Organic Substances"
-    },
-
-    {
-        id:"Acetaldehyde",
-        f:"CH₃CHO",
-        n:"Ethanal",
-        g:"Organic Substances"
-    },
-
-    {
-        id:"Acetic",
-        f:"CH₃COOH",
-        n:"Acetic acid",
-        g:"Organic Substances"
-    },
-
-    {
-        id:"Aniline",
-        f:"C₆H₅NH₂",
-        n:"Aniline",
-        g:"Organic Substances"
-    },
-
-    {
-        id:"Phenol",
-        f:"C₆H₅OH",
-        n:"Phenol",
-        g:"Organic Substances"
-    },
-
-    {
-        id:"Benzaldehyde",
-        f:"C₆H₅CHO",
-        n:"Benzaldehyde",
-        g:"Organic Substances"
-    },
-
-
-    /* ================= BASIC SUBSTANCES ================= */
-
-    {
-        id:"H2",
-        f:"H₂",
-        n:"Hydrogen",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"O2",
-        f:"O₂",
-        n:"Oxygen",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"N2",
-        f:"N₂",
-        n:"Nitrogen",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"Cl2",
-        f:"Cl₂",
-        n:"Chlorine",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"C",
-        f:"C",
-        n:"Carbon",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"CO2",
-        f:"CO₂",
-        n:"Carbon dioxide",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"H2O",
-        f:"H₂O",
-        n:"Water",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"NaCl",
-        f:"NaCl",
-        n:"Sodium chloride",
-        g:"Basic Substances"
-    },
-
-    {
-        id:"CaCO3",
-        f:"CaCO₃",
-        n:"Calcium carbonate",
-        g:"Basic Substances"
-    },
-
-
-    /* ================= MATERIALS ================= */
-
-    {
-        id:"sand",
-        f:"SiO₂",
-        n:"Sand",
-        g:"Basic Materials"
-    }
+/* ACIDS & BASES */
+
+{
+    id:"HCl",
+    name:"Hydrochloric Acid",
+    formula:"HCl",
+    category:"Acids & Bases"
+},
+
+{
+    id:"HClc",
+    name:"Concentrated HCl",
+    formula:"HCl",
+    category:"Acids & Bases"
+},
+
+{
+    id:"H2SO4",
+    name:"Sulfuric Acid",
+    formula:"H₂SO₄",
+    category:"Acids & Bases"
+},
+
+{
+    id:"H2SO4c",
+    name:"Concentrated H₂SO₄",
+    formula:"H₂SO₄",
+    category:"Acids & Bases"
+},
+
+{
+    id:"HNO3",
+    name:"Nitric Acid",
+    formula:"HNO₃",
+    category:"Acids & Bases"
+},
+
+{
+    id:"HNO3c",
+    name:"Concentrated HNO₃",
+    formula:"HNO₃",
+    category:"Acids & Bases"
+},
+
+{
+    id:"CH3COOH",
+    name:"Acetic Acid",
+    formula:"CH₃COOH",
+    category:"Acids & Bases"
+},
+
+{
+    id:"NaOH",
+    name:"Sodium Hydroxide",
+    formula:"NaOH",
+    category:"Acids & Bases"
+},
+
+{
+    id:"KOH",
+    name:"Potassium Hydroxide",
+    formula:"KOH",
+    category:"Acids & Bases"
+},
+
+{
+    id:"NH3",
+    name:"Ammonia",
+    formula:"NH₃",
+    category:"Acids & Bases"
+},
+
+/* VOLUMETRIC */
+
+{
+    id:"H2C2O4",
+    name:"Oxalic Acid",
+    formula:"H₂C₂O₄",
+    category:"Volumetric Analysis"
+},
+
+{
+    id:"Fe2",
+    name:"Ferrous Ion",
+    formula:"Fe²⁺",
+    category:"Volumetric Analysis"
+},
+
+{
+    id:"KMnO4",
+    name:"Potassium Permanganate",
+    formula:"KMnO₄",
+    category:"Volumetric Analysis"
+},
+
+{
+    id:"K2Cr2O7",
+    name:"Potassium Dichromate",
+    formula:"K₂Cr₂O₇",
+    category:"Volumetric Analysis"
+},
+
+{
+    id:"Na2CO3",
+    name:"Sodium Carbonate",
+    formula:"Na₂CO₃",
+    category:"Volumetric Analysis"
+},
+
+{
+    id:"Na2S2O3",
+    name:"Sodium Thiosulfate",
+    formula:"Na₂S₂O₃",
+    category:"Volumetric Analysis"
+},
+
+{
+    id:"I2",
+    name:"Iodine",
+    formula:"I₂",
+    category:"Volumetric Analysis"
+},
+
+{
+    id:"starch",
+    name:"Starch",
+    formula:"Starch",
+    category:"Volumetric Analysis"
+},
+
+/* SALT ANALYSIS */
+
+{
+    id:"AgNO3",
+    name:"Silver Nitrate",
+    formula:"AgNO₃",
+    category:"Salt Analysis"
+},
+
+{
+    id:"BaCl2",
+    name:"Barium Chloride",
+    formula:"BaCl₂",
+    category:"Salt Analysis"
+},
+
+{
+    id:"NH4Cl",
+    name:"Ammonium Chloride",
+    formula:"NH₄Cl",
+    category:"Salt Analysis"
+},
+
+{
+    id:"NH4OH",
+    name:"Ammonium Hydroxide",
+    formula:"NH₄OH",
+    category:"Salt Analysis"
+},
+
+{
+    id:"Na2S",
+    name:"Sodium Sulfide",
+    formula:"Na₂S",
+    category:"Salt Analysis"
+},
+
+{
+    id:"HNO3d",
+    name:"Dilute Nitric Acid",
+    formula:"HNO₃",
+    category:"Salt Analysis"
+},
+
+{
+    id:"HClr",
+    name:"Hydrochloric Acid",
+    formula:"HCl",
+    category:"Salt Analysis"
+},
+
+{
+    id:"KI",
+    name:"Potassium Iodide",
+    formula:"KI",
+    category:"Salt Analysis"
+},
+
+{
+    id:"KSCN",
+    name:"Potassium Thiocyanate",
+    formula:"KSCN",
+    category:"Salt Analysis"
+},
+
+{
+    id:"PbNO3",
+    name:"Lead Nitrate",
+    formula:"Pb(NO₃)₂",
+    category:"Salt Analysis"
+},
+
+{
+    id:"CuSO4",
+    name:"Copper Sulfate",
+    formula:"CuSO₄",
+    category:"Salt Analysis"
+},
+
+{
+    id:"FeCl3",
+    name:"Ferric Chloride",
+    formula:"FeCl₃",
+    category:"Salt Analysis"
+},
+
+/* ORGANIC TESTS */
+
+{
+    id:"Tollens",
+    name:"Tollens Reagent",
+    formula:"Tollens",
+    category:"Organic Tests"
+},
+
+{
+    id:"Fehling",
+    name:"Fehling Solution",
+    formula:"Fehling",
+    category:"Organic Tests"
+},
+
+{
+    id:"Benedict",
+    name:"Benedict Solution",
+    formula:"Benedict",
+    category:"Organic Tests"
+},
+
+{
+    id:"2_4DNP",
+    name:"2,4-DNP",
+    formula:"2,4-DNP",
+    category:"Organic Tests"
+},
+
+{
+    id:"NaHCO3",
+    name:"Sodium Bicarbonate",
+    formula:"NaHCO₃",
+    category:"Organic Tests"
+},
+
+{
+    id:"Br2",
+    name:"Bromine",
+    formula:"Br₂",
+    category:"Organic Tests"
+},
+
+{
+    id:"Iodoform",
+    name:"Iodoform Reagent",
+    formula:"CHI₃",
+    category:"Organic Tests"
+},
+
+/* ORGANIC */
+
+{
+    id:"Glucose",
+    name:"Glucose",
+    formula:"C₆H₁₂O₆",
+    category:"Organic Substances"
+},
+
+{
+    id:"Ethanol",
+    name:"Ethanol",
+    formula:"C₂H₅OH",
+    category:"Organic Substances"
+},
+
+{
+    id:"Acetone",
+    name:"Acetone",
+    formula:"CH₃COCH₃",
+    category:"Organic Substances"
+},
+
+{
+    id:"Acetaldehyde",
+    name:"Acetaldehyde",
+    formula:"CH₃CHO",
+    category:"Organic Substances"
+},
+
+{
+    id:"Acetic",
+    name:"Acetic Acid",
+    formula:"CH₃COOH",
+    category:"Organic Substances"
+},
+
+{
+    id:"Aniline",
+    name:"Aniline",
+    formula:"C₆H₅NH₂",
+    category:"Organic Substances"
+},
+
+{
+    id:"Phenol",
+    name:"Phenol",
+    formula:"C₆H₅OH",
+    category:"Organic Substances"
+},
+
+{
+    id:"Benzaldehyde",
+    name:"Benzaldehyde",
+    formula:"C₆H₅CHO",
+    category:"Organic Substances"
+},
+
+/* BASIC */
+
+{
+    id:"H2",
+    name:"Hydrogen",
+    formula:"H₂",
+    category:"Basic Substances"
+},
+
+{
+    id:"O2",
+    name:"Oxygen",
+    formula:"O₂",
+    category:"Basic Substances"
+},
+
+{
+    id:"N2",
+    name:"Nitrogen",
+    formula:"N₂",
+    category:"Basic Substances"
+},
+
+{
+    id:"Cl2",
+    name:"Chlorine",
+    formula:"Cl₂",
+    category:"Basic Substances"
+},
+
+{
+    id:"C",
+    name:"Carbon",
+    formula:"C",
+    category:"Basic Substances"
+},
+
+{
+    id:"CO2",
+    name:"Carbon Dioxide",
+    formula:"CO₂",
+    category:"Basic Substances"
+},
+
+{
+    id:"H2O",
+    name:"Water",
+    formula:"H₂O",
+    category:"Basic Substances"
+},
+
+{
+    id:"NaCl",
+    name:"Sodium Chloride",
+    formula:"NaCl",
+    category:"Basic Substances"
+},
+
+{
+    id:"CaCO3",
+    name:"Calcium Carbonate",
+    formula:"CaCO₃",
+    category:"Basic Substances"
+},
+
+{
+    id:"sand",
+    name:"Sand",
+    formula:"SiO₂",
+    category:"Basic Materials"
+}
 
 ];
 
 
-/* =========================================================
+/* =========================
    REACTION DATABASE
-========================================================= */
+========================= */
 
 const reactions = [
 
-    {
-        ids:["H2","O2"],
-        out:"2H₂ + O₂ → 2H₂O",
-        product:"H2O",
-        needs:["heat"]
-    },
+{
+    ids:["H2","O2"],
+    out:"2H₂ + O₂ → 2H₂O",
+    product:"H2O",
+    needs:["heat"]
+},
 
-    {
-        ids:["C","O2"],
-        out:"C + O₂ → CO₂",
-        product:"CO2",
-        needs:["heat"]
-    },
+{
+    ids:["C","O2"],
+    out:"C + O₂ → CO₂",
+    product:"CO2",
+    needs:["heat"]
+},
 
-    {
-        ids:["HCl","NaOH"],
-        out:"HCl + NaOH → NaCl + H₂O",
-        product:"H2O"
-    },
+{
+    ids:["HCl","H2O"],
+    out:"HCl + H₂O → H₃O⁺ + Cl⁻",
+    product:"H2O"
+},
 
-    {
-        ids:["HClc","NaOH"],
-        out:"HCl + NaOH → NaCl + H₂O",
-        product:"H2O"
-    },
+{
+    ids:["HClc","H2O"],
+    out:"HCl + H₂O → H₃O⁺ + Cl⁻",
+    product:"H2O"
+},
 
-    {
-        ids:["HCl","CaCO3"],
-        out:"CaCO₃ + HCl → CaCl₂ + CO₂ + H₂O",
-        product:"CO2"
-    },
+{
+    ids:["H2SO4","H2O"],
+    out:"H₂SO₄ + H₂O → hydrated ions",
+    product:"H2O"
+},
 
-    {
-        ids:["HCl","NaHCO3"],
-        out:"HCl + NaHCO₃ → NaCl + CO₂ + H₂O",
-        product:"CO2"
-    },
+{
+    ids:["H2SO4c","H2O"],
+    out:"H₂SO₄ + H₂O → hydrated ions",
+    product:"H2O"
+},
 
-    {
-        ids:["H2SO4","NaOH"],
-        out:"H₂SO₄ + NaOH → sulfate salt + H₂O",
-        product:"H2O"
-    },
+{
+    ids:["HNO3","H2O"],
+    out:"HNO₃ + H₂O → H₃O⁺ + NO₃⁻",
+    product:"H2O"
+},
 
-    {
-        ids:["HNO3","NaOH"],
-        out:"HNO₃ + NaOH → nitrate salt + H₂O",
-        product:"H2O"
-    },
+{
+    ids:["HNO3c","H2O"],
+    out:"HNO₃ + H₂O → H₃O⁺ + NO₃⁻",
+    product:"H2O"
+},
 
-    {
-        ids:["CH3COOH","NaOH"],
-        out:"CH₃COOH + NaOH → CH₃COONa + H₂O",
-        product:"H2O"
-    },
+{
+    ids:["CH3COOH","H2O"],
+    out:"CH₃COOH + H₂O ⇌ CH₃COO⁻ + H₃O⁺",
+    product:"H2O"
+},
 
-    {
-        ids:["AgNO3","HCl"],
-        out:"AgNO₃ + HCl → AgCl ↓ + HNO₃",
-        product:"AgNO3"
-    },
+{
+    ids:["HCl","NaOH"],
+    out:"HCl + NaOH → NaCl + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["BaCl2","H2SO4"],
-        out:"BaCl₂ + H₂SO₄ → BaSO₄ ↓ + 2HCl",
-        product:"BaCl2"
-    },
+{
+    ids:["HClc","NaOH"],
+    out:"HCl + NaOH → NaCl + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["Glucose","Tollens"],
-        out:"Glucose + Tollens reagent → silver-mirror test simulation",
-        product:"AgNO3"
-    },
+{
+    ids:["H2SO4","NaOH"],
+    out:"H₂SO₄ + NaOH → sulfate salt + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["Glucose","Fehling"],
-        out:"Glucose + Fehling solution → red precipitate simulation",
-        product:"Fehling"
-    },
+{
+    ids:["H2SO4c","NaOH"],
+    out:"H₂SO₄ + NaOH → sulfate salt + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["Glucose","Benedict"],
-        out:"Glucose + Benedict solution → colored precipitate simulation",
-        product:"Benedict"
-    },
+{
+    ids:["HNO3","NaOH"],
+    out:"HNO₃ + NaOH → nitrate salt + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["Acetic","NaHCO3"],
-        out:"CH₃COOH + NaHCO₃ → CO₂ + H₂O + acetate",
-        product:"CO2"
-    },
+{
+    ids:["HNO3c","NaOH"],
+    out:"HNO₃ + NaOH → nitrate salt + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["Phenol","Br2"],
-        out:"Phenol + bromine reagent → bromination-test simulation",
-        product:"Br2"
-    },
+{
+    ids:["CH3COOH","NaOH"],
+    out:"CH₃COOH + NaOH → CH₃COONa + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["Acetone","2_4DNP"],
-        out:"Acetone + 2,4-DNP → carbonyl derivative simulation",
-        product:"2_4DNP"
-    },
+{
+    ids:["HCl","KOH"],
+    out:"HCl + KOH → KCl + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["Acetaldehyde","Tollens"],
-        out:"Ethanal + Tollens reagent → silver-mirror test simulation",
-        product:"AgNO3"
-    },
+{
+    ids:["HNO3","KOH"],
+    out:"HNO₃ + KOH → KNO₃ + H₂O",
+    product:"H2O"
+},
 
-    {
-        ids:["KMnO4","Fe2"],
-        out:"KMnO₄ + Fe²⁺ → redox titration simulation",
-        product:"KMnO4"
-    },
+{
+    ids:["HCl","CaCO3"],
+    out:"CaCO₃ + HCl → CaCl₂ + CO₂ + H₂O",
+    product:"CO2"
+},
 
-    {
-        ids:["K2Cr2O7","Fe2"],
-        out:"K₂Cr₂O₇ + Fe²⁺ → redox titration simulation",
-        product:"K2Cr2O7"
-    },
+{
+    ids:["HClc","CaCO3"],
+    out:"CaCO₃ + HCl → CaCl₂ + CO₂ + H₂O",
+    product:"CO2"
+},
 
-    {
-        ids:["I2","Na2S2O3"],
-        out:"I₂ + thiosulfate → iodine titration simulation",
-        product:"I2"
-    },
+{
+    ids:["HCl","NaHCO3"],
+    out:"HCl + NaHCO₃ → NaCl + CO₂ + H₂O",
+    product:"CO2"
+},
 
-    {
-        ids:["CuSO4","NaOH"],
-        out:"CuSO₄ + NaOH → Cu(OH)₂ ↓ simulation",
-        product:"CuSO4"
-    },
+{
+    ids:["CH3COOH","NaHCO3"],
+    out:"CH₃COOH + NaHCO₃ → acetate + CO₂ + H₂O",
+    product:"CO2"
+},
 
-    {
-        ids:["FeCl3","KSCN"],
-        out:"Fe³⁺ + SCN⁻ → colored complex simulation",
-        product:"FeCl3"
-    },
+{
+    ids:["Acetic","NaHCO3"],
+    out:"CH₃COOH + NaHCO₃ → acetate + CO₂ + H₂O",
+    product:"CO2"
+},
 
-    {
-        ids:["PbNO3","KI"],
-        out:"Pb(NO₃)₂ + KI → PbI₂ ↓ simulation",
-        product:"KI"
-    }
+{
+    ids:["AgNO3","HCl"],
+    out:"AgNO₃ + HCl → AgCl ↓ + HNO₃",
+    product:"AgNO3"
+},
+
+{
+    ids:["AgNO3","HClr"],
+    out:"AgNO₃ + HCl → AgCl ↓ + HNO₃",
+    product:"AgNO3"
+},
+
+{
+    ids:["BaCl2","H2SO4"],
+    out:"BaCl₂ + H₂SO₄ → BaSO₄ ↓ + 2HCl",
+    product:"BaCl2"
+},
+
+{
+    ids:["CuSO4","NaOH"],
+    out:"CuSO₄ + NaOH → Cu(OH)₂ ↓ + sodium sulfate",
+    product:"CuSO4"
+},
+
+{
+    ids:["PbNO3","KI"],
+    out:"Pb(NO₃)₂ + KI → PbI₂ ↓ + potassium nitrate",
+    product:"KI"
+},
+
+{
+    ids:["FeCl3","KSCN"],
+    out:"Fe³⁺ + SCN⁻ → colored complex simulation",
+    product:"FeCl3"
+},
+
+{
+    ids:["FeCl3","NaOH"],
+    out:"FeCl₃ + NaOH → Fe(OH)₃ ↓ + sodium chloride",
+    product:"FeCl3"
+},
+
+{
+    ids:["Glucose","Tollens"],
+    out:"Glucose + Tollens reagent → silver-mirror test simulation",
+    product:"AgNO3"
+},
+
+{
+    ids:["Acetaldehyde","Tollens"],
+    out:"Ethanal + Tollens reagent → silver-mirror test simulation",
+    product:"AgNO3"
+},
+
+{
+    ids:["Glucose","Fehling"],
+    out:"Glucose + Fehling solution → red precipitate simulation",
+    product:"Glucose"
+},
+
+{
+    ids:["Glucose","Benedict"],
+    out:"Glucose + Benedict solution → colored precipitate simulation",
+    product:"Glucose"
+},
+
+{
+    ids:["Phenol","Br2"],
+    out:"Phenol + bromine reagent → bromination-test simulation",
+    product:"Br2"
+},
+
+{
+    ids:["Acetone","2_4DNP"],
+    out:"Acetone + 2,4-DNP → carbonyl derivative simulation",
+    product:"2_4DNP"
+},
+
+{
+    ids:["KMnO4","Fe2"],
+    out:"KMnO₄ + Fe²⁺ → redox titration simulation",
+    product:"KMnO4"
+},
+
+{
+    ids:["K2Cr2O7","Fe2"],
+    out:"K₂Cr₂O₇ + Fe²⁺ → redox titration simulation",
+    product:"K2Cr2O7"
+},
+
+{
+    ids:["I2","Na2S2O3"],
+    out:"I₂ + thiosulfate → iodine titration simulation",
+    product:"I2"
+}
 
 ];
 
 
-/* =========================================================
-   APPLICATION STATE
-========================================================= */
+/* =========================
+   APP STATE
+========================= */
 
 let selected = [];
-
 let conditions = new Set();
-
 let resultProduct = null;
 
-let rotation = 0;
+const viewer = document.getElementById("viewer");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-let tilt = 0;
+const substanceList =
+    document.getElementById("substanceList");
 
-let zoom = 1;
+const reactants =
+    document.getElementById("reactants");
 
-let animationTime = 0;
+const resultEquation =
+    document.getElementById("resultEquation");
 
-let lastTime = 0;
+const status =
+    document.getElementById("status");
 
-let pointerDown = false;
-
-let lastX = 0;
-
-let lastY = 0;
-
-let touches = new Map();
-
-let pinchStart = 0;
-
-let pinchZoom = 1;
-
-
-/* =========================================================
-   DOM REFERENCES
-========================================================= */
-
-const canvas =
-    document.getElementById("canvas");
-
-const ctx =
-    canvas.getContext("2d");
-
-const library =
-    document.getElementById("library");
+const heat =
+    document.getElementById("heat");
 
 const search =
     document.getElementById("search");
 
-const statusEl =
-    document.getElementById("status");
+const runButton =
+    document.getElementById("runButton");
 
-const heatEl =
-    document.getElementById("heat");
-
-const resultEl =
-    document.getElementById("result");
+const resetButton =
+    document.getElementById("resetButton");
 
 
+/* =========================
+   DRAWING
+========================= */
 
-/* =========================================================
-   CANVAS RESIZE
-========================================================= */
+let rotation = 0;
+let zoom = 1;
+let animationFrame = 0;
 
 function resizeCanvas(){
 
+    const rect = viewer.getBoundingClientRect();
+
     const dpr =
-        Math.min(
-            window.devicePixelRatio || 1,
-            2
-        );
+        Math.min(window.devicePixelRatio || 1,2);
 
-    const rect =
-        canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
 
-    canvas.width =
-        Math.max(
-            1,
-            Math.floor(rect.width * dpr)
-        );
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
 
-    canvas.height =
-        Math.max(
-            1,
-            Math.floor(rect.height * dpr)
-        );
-
-    ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-    );
-}
-
-window.addEventListener(
-    "resize",
-    resizeCanvas
-);
-
-resizeCanvas();
-
-
-
-/* =========================================================
-   SUBSTANCE LIBRARY
-========================================================= */
-
-function renderLibrary(){
-
-    const query =
-        search.value
-            .trim()
-            .toLowerCase();
-
-    const filtered =
-        substances.filter(
-            s =>
-                !query ||
-                (
-                    s.f +
-                    " " +
-                    s.n +
-                    " " +
-                    s.g
-                )
-                .toLowerCase()
-                .includes(query)
-        );
-
-
-    const groups = {};
-
-
-    filtered.forEach(
-        substance => {
-
-            if(!groups[substance.g]){
-                groups[substance.g] = [];
-            }
-
-            groups[substance.g]
-                .push(substance);
-        }
-    );
-
-
-    library.innerHTML = "";
-
-
-    Object.keys(groups)
-        .forEach(groupName => {
-
-            const title =
-                document.createElement("div");
-
-            title.className =
-                "group-title";
-
-            title.textContent =
-                groupName;
-
-            library.appendChild(title);
-
-
-            const grid =
-                document.createElement("div");
-
-            grid.className =
-                "substances";
-
-
-            groups[groupName]
-                .forEach(substance => {
-
-                    const button =
-                        document.createElement("button");
-
-                    button.className =
-                        "substance";
-
-
-                    if(
-                        selected.includes(
-                            substance.id
-                        )
-                    ){
-                        button.classList.add(
-                            "selected"
-                        );
-                    }
-
-
-                    button.innerHTML =
-                        `
-                        <div class="formula">
-                            ${substance.f}
-                        </div>
-
-                        <div class="sname">
-                            ${substance.n}
-                        </div>
-                        `;
-
-
-                    button.onclick =
-                        () =>
-                            addReactant(
-                                substance.id
-                            );
-
-
-                    grid.appendChild(button);
-
-                });
-
-
-            library.appendChild(grid);
-
-        });
-
-
-    if(!Object.keys(groups).length){
-
-        library.innerHTML =
-            `
-            <div class="empty">
-                No substance found.
-            </div>
-            `;
-
-    }
-
-}
-
-
-search.addEventListener(
-    "input",
-    renderLibrary
-);
-
-
-
-/* =========================================================
-   ADD REACTANT
-========================================================= */
-
-function addReactant(id){
-
-    /*
-       Maximum four reactants.
-       This prevents the interface from becoming
-       overloaded on small screens.
-    */
-
-    if(selected.length >= 4){
-
-        statusEl.textContent =
-            "Maximum 4 reactants";
-
-        return;
-    }
-
-
-    selected.push(id);
-
-    resultProduct = null;
-
-    resultEl.classList.remove(
-        "show"
-    );
-
-    statusEl.textContent =
-        "Reactant added";
-
-
-    renderReactants();
-
-    renderLibrary();
+    ctx.setTransform(dpr,0,0,dpr,0,0);
 
     drawScene();
 }
 
+window.addEventListener("resize",resizeCanvas);
 
-
-/* =========================================================
-   REMOVE REACTANT
-========================================================= */
-
-function removeReactant(index){
-
-    selected.splice(
-        index,
-        1
-    );
-
-    resultProduct = null;
-
-    resultEl.classList.remove(
-        "show"
-    );
-
-    renderReactants();
-
-    renderLibrary();
-
-    drawScene();
-}
-
-
-
-/* =========================================================
-   REACTANT CHIPS
-========================================================= */
-
-function renderReactants(){
-
-    const box =
-        document.getElementById(
-            "reactants"
-        );
-
-
-    if(!selected.length){
-
-        box.innerHTML =
-            `
-            <span
-                style="
-                    color:#7898a6;
-                    font-size:12px;
-                "
-            >
-                Choose substances from the left.
-            </span>
-            `;
-
-        return;
-    }
-
-
-    box.innerHTML = "";
-
-
-    selected.forEach(
-        (id,index) => {
-
-            const substance =
-                substances.find(
-                    s => s.id === id
-                );
-
-
-            if(!substance){
-                return;
-            }
-
-
-            const chip =
-                document.createElement(
-                    "span"
-                );
-
-            chip.className =
-                "chip";
-
-
-            chip.innerHTML =
-                `
-                ${substance.f}
-
-                <button
-                    aria-label="Remove reactant"
-                    type="button"
-                >
-                    ×
-                </button>
-                `;
-
-
-            chip
-                .querySelector("button")
-                .onclick =
-                    () =>
-                        removeReactant(
-                            index
-                        );
-
-
-            box.appendChild(chip);
-
-        }
-    );
-
-}
-
-
-
-/* =========================================================
-   CONDITIONS
-========================================================= */
-
-document
-    .querySelectorAll(".condition")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                const condition =
-                    button.dataset.condition;
-
-
-                if(
-                    conditions.has(
-                        condition
-                    )
-                ){
-
-                    conditions.delete(
-                        condition
-                    );
-
-                    button.classList.remove(
-                        "active"
-                    );
-
-                }
-                else{
-
-                    conditions.add(
-                        condition
-                    );
-
-                    button.classList.add(
-                        "active"
-                    );
-
-                }
-
-
-                heatEl.classList.toggle(
-                    "on",
-                    conditions.has("heat")
-                );
-
-            }
-        );
-
-    });
-
-
-
-/* =========================================================
-   FIND REACTION
-========================================================= */
-
-function findReaction(){
-
-    const selectedIds =
-        [...new Set(selected)]
-            .sort()
-            .join("|");
-
-
-    for(
-        const reaction of reactions
-    ){
-
-        const reactionIds =
-            [...new Set(reaction.ids)]
-                .sort()
-                .join("|");
-
-
-        if(
-            selectedIds ===
-            reactionIds
-        ){
-
-            if(
-                reaction.needs &&
-                !reaction.needs.every(
-                    requirement =>
-                        conditions.has(
-                            requirement
-                        )
-                )
-            ){
-
-                return {
-                    needs:
-                        reaction.needs
-                };
-
-            }
-
-
-            return reaction;
-
-        }
-
-    }
-
-
-    return null;
-}
-
-
-
-/* =========================================================
-   RUN SIMULATION
-========================================================= */
-
-function runReaction(){
-
-    if(!selected.length){
-
-        statusEl.textContent =
-            "Select at least one reactant";
-
-        return;
-    }
-
-
-    const reaction =
-        findReaction();
-
-
-    if(
-        reaction &&
-        reaction.needs
-    ){
-
-        statusEl.textContent =
-            "Required condition: " +
-            reaction.needs.join(", ");
-
-        return;
-    }
-
-
-    let output =
-        "No predefined reaction — educational visualization only.";
-
-    let product = null;
-
-
-    if(reaction){
-
-        output =
-            reaction.out;
-
-        product =
-            reaction.product;
-
-    }
-    else if(
-        selected.length === 1
-    ){
-
-        const substance =
-            substances.find(
-                s => s.id === selected[0]
-            );
-
-
-        output =
-            substance.f +
-            " → molecular visualization";
-
-        product =
-            substance.id;
-
-    }
-
-
-    resultProduct =
-        product;
-
-
-    resultEl.innerHTML =
-        `
-        <span class="ok">
-            Reaction result:
-        </span>
-
-        ${output}
-        `;
-
-
-    resultEl.classList.add(
-        "show"
-    );
-
-
-    statusEl.textContent =
-        reaction
-            ? "Simulation complete"
-            : "Visualization ready";
-
-
-    drawScene();
-
-}
-
-
-
-/* =========================================================
-   RESET
-========================================================= */
-
-function resetExperiment(){
-
-    selected = [];
-
-    conditions.clear();
-
-    resultProduct = null;
-
-
-    document
-        .querySelectorAll(".condition")
-        .forEach(
-            button =>
-                button.classList.remove(
-                    "active"
-                )
-        );
-
-
-    heatEl.classList.remove(
-        "on"
-    );
-
-
-    resultEl.classList.remove(
-        "show"
-    );
-
-
-    statusEl.textContent =
-        "Ready — select reactants";
-
-
-    renderReactants();
-
-    renderLibrary();
-
-    drawScene();
-
-}
-
-
-
-/* =========================================================
-   ELEMENT COLORS
-========================================================= */
 
 function atomColor(element){
 
     const colors = {
-
-        H:"#f4fbff",
-
-        O:"#ff6868",
-
-        N:"#5d9cff",
-
-        C:"#aeb8bf",
-
-        S:"#ffe266",
-
-        Cl:"#b8e86a",
-
-        Fe:"#a96cff",
-
-        Cu:"#3daaff",
-
-        Ag:"#dce8ef",
-
-        I:"#9a6bff",
-
-        P:"#ff9b52",
-
-        K:"#d98cff",
-
-        Na:"#b7d9ff",
-
-        Ca:"#d5e7ff",
-
-        Br:"#c67b43"
-
+        H:"#ffffff",
+        O:"#ff5c67",
+        C:"#444c58",
+        N:"#4d8cff",
+        Cl:"#55d66b",
+        S:"#f5c84b",
+        Fe:"#c46b3d",
+        K:"#b87cff",
+        I:"#7f66ff",
+        Na:"#9da8b4",
+        Ca:"#8de0c1",
+        Br:"#a74d38",
+        Ag:"#d7dbe2",
+        Pb:"#6e7892"
     };
 
-
-    return colors[element] ||
-        "#d9f8ff";
+    return colors[element] || "#7ddcff";
 }
 
 
+function parseFormula(formula){
 
-/* =========================================================
-   FORMULA PARSER
-========================================================= */
+    if(!formula) return [];
 
-function formulaParts(formula){
+    const clean =
+        formula
+            .replace(/[₀₁₂₃₄₅₆₇₈₉]/g,"")
+            .replace(/[⁺⁻²³¹⁴⁵⁶⁷⁸⁹]/g,"");
 
-    if(!formula){
-        return ["X"];
-    }
+    const matches =
+        clean.match(/[A-Z][a-z]?\d*/g);
 
+    if(!matches) return [];
 
-    /*
-       Convert common Unicode subscripts
-       into normal numbers.
-    */
+    const atoms=[];
 
-    const subscriptMap = {
-        "₀":"0",
-        "₁":"1",
-        "₂":"2",
-        "₃":"3",
-        "₄":"4",
-        "₅":"5",
-        "₆":"6",
-        "₇":"7",
-        "₈":"8",
-        "₉":"9"
-    };
+    matches.forEach(token=>{
 
+        const match =
+            token.match(/^([A-Z][a-z]?)(\d*)$/);
 
-    let clean =
-        formula.replace(
-            /[₀₁₂₃₄₅₆₇₈₉]/g,
-            character =>
-                subscriptMap[character]
-        );
+        if(!match) return;
 
-
-    /*
-       Remove visual charge/bracket characters
-       which aren't useful for the simple
-       educational visualization.
-    */
-
-    clean =
-        clean.replace(
-            /[\[\]\(\)\+\-\/]/g,
-            ""
-        );
-
-
-    const parts = [];
-
-    const regex =
-        /([A-Z][a-z]?)(\d*)/g;
-
-
-    let match;
-
-
-    while(
-        (match = regex.exec(clean))
-        !== null
-    ){
-
-        const element =
-            match[1];
-
-
-        if(!element){
-            continue;
-        }
-
+        const element=match[1];
 
         let count =
-            parseInt(
-                match[2] || "1",
-                10
-            );
+            parseInt(match[2] || "1");
 
+        count=Math.min(count,8);
 
-        /*
-           Keep visualization small enough
-           for phones.
-        */
-
-        count =
-            Math.min(
-                count,
-                6
-            );
-
-
-        for(
-            let i=0;
-            i<count;
-            i++
-        ){
-
-            parts.push(
-                element
-            );
-
+        for(let i=0;i<count;i++){
+            atoms.push(element);
         }
 
-    }
+    });
 
-
-    return parts.length
-        ? parts.slice(0,10)
-        : ["X"];
-
+    return atoms;
 }
 
 
+function drawAtom(x,y,r,element){
 
-/* =========================================================
-   DRAW A MOLECULE
-========================================================= */
-
-function drawMolecule(
-    formula,
-    centerX,
-    centerY,
-    scale,
-    phase
-){
-
-    const atoms =
-        formulaParts(
-            formula
+    const gradient =
+        ctx.createRadialGradient(
+            x-r*.35,
+            y-r*.4,
+            r*.1,
+            x,
+            y,
+            r
         );
 
-
-    const points = [];
-
-    const count =
-        atoms.length;
-
-
-    /*
-       Arrange atoms in a rotating
-       pseudo-3D ring.
-    */
-
-    for(
-        let i=0;
-        i<count;
-        i++
-    ){
-
-        const angle =
-            count === 1
-                ? 0
-                :
-                (
-                    i /
-                    count
-                ) *
-                Math.PI *
-                2
-                +
-                phase;
-
-
-        const radius =
-            count === 1
-                ? 0
-                :
-                (
-                    25 +
-                    Math.min(
-                        count,
-                        6
-                    ) *
-                    5
-                ) *
-                scale;
-
-
-        const depth =
-            Math.sin(
-                angle + tilt
-            ) *
-            .5 +
-            .5;
-
-
-        points.push({
-
-            x:
-                centerX +
-                Math.cos(angle) *
-                radius,
-
-            y:
-                centerY +
-                Math.sin(angle) *
-                radius *
-                .62,
-
-            depth,
-
-            element:
-                atoms[i]
-
-        });
-
-    }
-
-
-    /*
-       Draw bonds.
-    */
-
-    if(points.length > 1){
-
-        ctx.save();
-
-        ctx.lineWidth =
-            Math.max(
-                2,
-                4 * scale
-            );
-
-        ctx.strokeStyle =
-            "rgba(195,230,240,.48)";
-
-
-        for(
-            let i=0;
-            i<points.length-1;
-            i++
-        ){
-
-            const a =
-                points[i];
-
-            const b =
-                points[i+1];
-
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                a.x,
-                a.y
-            );
-
-            ctx.lineTo(
-                b.x,
-                b.y
-            );
-
-            ctx.stroke();
-
-        }
-
-
-        ctx.restore();
-
-    }
-
-
-    /*
-       Draw back atoms first.
-    */
-
-    points.sort(
-        (a,b) =>
-            a.depth -
-            b.depth
+    gradient.addColorStop(
+        0,
+        "#ffffff"
     );
 
-
-    points.forEach(
-        point => {
-
-            const radius =
-                (
-                    11 +
-                    Math.min(
-                        atoms.length,
-                        7
-                    ) *
-                    1.4
-                ) *
-                scale *
-                (
-                    .8 +
-                    .35 *
-                    point.depth
-                );
-
-
-            const color =
-                atomColor(
-                    point.element
-                );
-
-
-            /*
-               Radial gradient creates
-               a shiny spherical effect.
-            */
-
-            const gradient =
-                ctx.createRadialGradient(
-                    point.x -
-                        radius * .35,
-                    point.y -
-                        radius * .45,
-                    radius * .08,
-
-                    point.x,
-                    point.y,
-                    radius
-                );
-
-
-            gradient.addColorStop(
-                0,
-                "#ffffff"
-            );
-
-            gradient.addColorStop(
-                .17,
-                color
-            );
-
-            gradient.addColorStop(
-                1,
-                "rgba(0,0,0,.72)"
-            );
-
-
-            ctx.fillStyle =
-                gradient;
-
-
-            ctx.beginPath();
-
-            ctx.arc(
-                point.x,
-                point.y,
-                radius,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
-        }
+    gradient.addColorStop(
+        .22,
+        atomColor(element)
     );
 
+    gradient.addColorStop(
+        1,
+        "#111820"
+    );
+
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=gradient;
+    ctx.fill();
+
+    ctx.strokeStyle="rgba(255,255,255,.2)";
+    ctx.lineWidth=1;
+    ctx.stroke();
+
+    ctx.fillStyle="rgba(255,255,255,.8)";
+    ctx.font=`${Math.max(10,r*.65)}px Arial`;
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(element,x,y);
 }
 
 
+function drawMolecule(substance){
 
-/* =========================================================
-   CENTER TEXT
-========================================================= */
+    const rect =
+        viewer.getBoundingClientRect();
 
-function drawCenteredText(
-    text,
-    y,
-    size
-){
+    const w=rect.width;
+    const h=rect.height;
 
-    ctx.save();
+    const formula =
+        substance.formula
+            .replace(/[₀₁₂₃₄₅₆₇₈₉]/g,"");
 
-    ctx.textAlign =
-        "center";
+    const atoms =
+        parseFormula(formula);
 
-    ctx.font =
-        "800 " +
-        size +
-        "px Arial";
+    if(!atoms.length){
 
-    ctx.fillStyle =
-        "#dffcff";
+        ctx.fillStyle="#8aa3b8";
+        ctx.font="18px Arial";
+        ctx.textAlign="center";
+        ctx.fillText(
+            substance.name,
+            w/2,
+            h/2
+        );
 
-
-    ctx.fillText(
-        text,
-        canvas.clientWidth / 2,
-        y
-    );
-
-
-    ctx.restore();
-
-}
-
-
-
-/* =========================================================
-   MAIN CANVAS DRAWING
-========================================================= */
-
-function drawScene(){
-
-    const width =
-        canvas.clientWidth;
-
-    const height =
-        canvas.clientHeight;
-
-
-    if(
-        width <= 0 ||
-        height <= 0
-    ){
         return;
     }
 
+    const count=Math.min(atoms.length,14);
 
-    /*
-       Clear.
-    */
+    const centerX=w/2;
+    const centerY=h/2;
+
+    const radius =
+        Math.min(
+            145,
+            Math.max(75,100+count*3)
+        ) * zoom;
+
+    const positions=[];
+
+    for(let i=0;i<count;i++){
+
+        const angle =
+            rotation +
+            (Math.PI*2*i/count);
+
+        const ring =
+            count<=4
+                ? radius*.45
+                : radius*.55;
+
+        const x =
+            centerX +
+            Math.cos(angle)*ring;
+
+        const y =
+            centerY +
+            Math.sin(angle)*ring*.65;
+
+        positions.push({x,y});
+    }
+
+    /* bonds */
+
+    for(let i=0;i<positions.length-1;i++){
+
+        const a=positions[i];
+        const b=positions[i+1];
+
+        ctx.beginPath();
+        ctx.moveTo(a.x,a.y);
+        ctx.lineTo(b.x,b.y);
+
+        ctx.strokeStyle="rgba(190,215,235,.65)";
+        ctx.lineWidth=7;
+        ctx.stroke();
+
+        ctx.strokeStyle="rgba(255,255,255,.22)";
+        ctx.lineWidth=2;
+        ctx.stroke();
+
+    }
+
+    positions.forEach(
+        (p,i)=>{
+            const atomR =
+                Math.max(
+                    18,
+                    Math.min(
+                        32,
+                        42-count
+                    )
+                );
+
+            drawAtom(
+                p.x,
+                p.y,
+                atomR,
+                atoms[i]
+            );
+        }
+    );
+
+    ctx.fillStyle="rgba(255,255,255,.65)";
+    ctx.font="14px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(
+        substance.name,
+        centerX,
+        h-30
+    );
+}
+
+
+function drawScene(){
+
+    const rect =
+        viewer.getBoundingClientRect();
+
+    if(!rect.width || !rect.height)
+        return;
 
     ctx.clearRect(
         0,
         0,
-        width,
-        height
+        rect.width,
+        rect.height
     );
-
-
-    /*
-       Small stars / particles in background.
-    */
-
-    ctx.save();
-
-
-    for(
-        let i=0;
-        i<60;
-        i++
-    ){
-
-        const x =
-            (
-                i *
-                83.7
-            ) %
-            width;
-
-
-        const y =
-            (
-                i *
-                47.3
-            ) %
-            height;
-
-
-        ctx.globalAlpha =
-            .12 +
-            .12 *
-            Math.sin(
-                animationTime *
-                .001 +
-                i
-            );
-
-
-        ctx.fillStyle =
-            "#a9eaff";
-
-
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            y,
-            1,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-
-    }
-
-
-    ctx.restore();
-
-
-    /* =========================
-       PRODUCT
-    ========================= */
 
     if(resultProduct){
 
         const product =
             substances.find(
-                s =>
-                    s.id ===
-                    resultProduct
+                s=>s.id===resultProduct
             );
 
-
-        drawCenteredText(
-            "PRODUCT",
-            30,
-            11
-        );
-
-
-        drawMolecule(
-            product
-                ? product.f
-                : resultProduct,
-
-            width / 2,
-
-            height / 2,
-
-            zoom,
-
-            rotation
-        );
-
-
-        drawCenteredText(
-            product
-                ? product.f
-                : resultProduct,
-
-            height - 30,
-
-            18
-        );
-
-    }
-
-
-    /* =========================
-       REACTANTS
-    ========================= */
-
-    else if(selected.length){
-
-        drawCenteredText(
-            "REACTANTS",
-            30,
-            11
-        );
-
-
-        const gap =
-            Math.min(
-                130,
-                (width - 80) /
-                selected.length
-            );
-
-
-        const start =
-            width / 2 -
-            (
-                selected.length - 1
-            ) *
-            gap /
-            2;
-
-
-        selected.forEach(
-            (id,index) => {
-
-                const substance =
-                    substances.find(
-                        s =>
-                            s.id === id
-                    );
-
-
-                if(!substance){
-                    return;
-                }
-
-
-                drawMolecule(
-                    substance.f,
-
-                    start +
-                    index *
-                    gap,
-
-                    height / 2,
-
-                    zoom * .72,
-
-                    rotation +
-                    index * .7
-                );
-
-            }
-        );
-
-    }
-
-
-    /* =========================
-       IDLE STATE
-    ========================= */
-
-    else{
-
-        drawMolecule(
-            "H₂O",
-
-            width / 2,
-
-            height / 2,
-
-            zoom,
-
-            rotation
-        );
-
-
-        drawCenteredText(
-            "SELECT A SUBSTANCE",
-            30,
-            11
-        );
-
-
-        drawCenteredText(
-            "Molecular visualization ready",
-            height - 30,
-            13
-        );
-
-    }
-
-
-    /* =========================
-       HEAT PARTICLES
-    ========================= */
-
-    if(
-        conditions.has("heat")
-    ){
-
-        ctx.save();
-
-
-        for(
-            let i=0;
-            i<22;
-            i++
-        ){
-
-            const x =
-                (
-                    i * 71 +
-                    animationTime * .045
-                ) %
-                width;
-
-
-            const y =
-                height -
-                30 -
-                (
-                    (
-                        animationTime * .06 +
-                        i * 37
-                    )
-                    %
-                    Math.max(
-                        80,
-                        height * .55
-                    )
-                );
-
-
-            ctx.globalAlpha =
-                .30;
-
-
-            ctx.fillStyle =
-                i % 2
-                    ? "#ffb52e"
-                    : "#ff6538";
-
-
-            ctx.beginPath();
-
-            ctx.arc(
-                x,
-                y,
-                2 +
-                i % 3,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
+        if(product){
+            drawMolecule(product);
+            return;
         }
-
-
-        ctx.restore();
-
     }
 
-}
+    if(selected.length){
 
+        const substance =
+            substances.find(
+                s=>s.id===selected[selected.length-1]
+            );
 
+        if(substance){
+            drawMolecule(substance);
+            return;
+        }
+    }
 
-/* =========================================================
-   ANIMATION LOOP
-========================================================= */
-
-function animationLoop(time){
-
-    const delta =
-        time -
-        lastTime;
-
-
-    lastTime =
-        time;
-
-
-    animationTime +=
-        delta;
-
-
-    /*
-       Slow natural molecule rotation.
-    */
-
-    rotation +=
-        .00035 *
-        delta;
-
-
-    drawScene();
-
-
-    requestAnimationFrame(
-        animationLoop
+    ctx.fillStyle="#678198";
+    ctx.font="18px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(
+        "Select a substance to visualize",
+        rect.width/2,
+        rect.height/2
     );
-
 }
 
 
-requestAnimationFrame(
-    animationLoop
-);
+/* =========================
+   SUBSTANCE UI
+========================= */
 
+function renderSubstances(filter=""){
 
+    substanceList.innerHTML="";
 
-/* =========================================================
-   MOUSE / POINTER ROTATION
-========================================================= */
+    const categories = {};
 
-canvas.addEventListener(
-    "pointerdown",
-    event => {
-
-        pointerDown =
-            true;
-
-
-        lastX =
-            event.clientX;
-
-        lastY =
-            event.clientY;
-
+    substances.forEach(s=>{
 
         if(
-            canvas.setPointerCapture
+            filter &&
+            !(
+                s.name.toLowerCase().includes(filter) ||
+                s.formula.toLowerCase().includes(filter)
+            )
         ){
-
-            canvas.setPointerCapture(
-                event.pointerId
-            );
-
-        }
-
-    }
-);
-
-
-canvas.addEventListener(
-    "pointermove",
-    event => {
-
-        if(!pointerDown){
             return;
         }
 
+        if(!categories[s.category])
+            categories[s.category]=[];
 
-        rotation +=
-            (
-                event.clientX -
-                lastX
-            ) *
-            .008;
+        categories[s.category].push(s);
 
+    });
 
-        tilt +=
-            (
-                event.clientY -
-                lastY
-            ) *
-            .004;
+    Object.keys(categories).forEach(category=>{
 
+        const wrapper =
+            document.createElement("div");
 
-        tilt =
-            Math.max(
-                -1.2,
-                Math.min(
-                    1.2,
-                    tilt
-                )
+        wrapper.className="category";
+
+        const title =
+            document.createElement("h3");
+
+        title.textContent=category;
+
+        wrapper.appendChild(title);
+
+        const list =
+            document.createElement("div");
+
+        list.className="substances";
+
+        categories[category].forEach(s=>{
+
+            const button =
+                document.createElement("button");
+
+            button.type="button";
+            button.className="substance";
+            button.dataset.id=s.id;
+
+            button.innerHTML=
+                `<strong>${s.name}</strong><br>
+                 <small>${s.formula}</small>`;
+
+            if(selected.includes(s.id))
+                button.classList.add("selected");
+
+            button.addEventListener(
+                "click",
+                ()=>{
+                    addReactant(s.id);
+                }
             );
 
+            list.appendChild(button);
 
-        lastX =
-            event.clientX;
+        });
 
-        lastY =
-            event.clientY;
+        wrapper.appendChild(list);
+
+        substanceList.appendChild(wrapper);
+
+    });
+
+}
+
+
+function addReactant(id){
+
+    if(selected.length>=4){
+
+        status.textContent =
+            "Maximum 4 reactants can be selected.";
+
+        return;
+    }
+
+    selected.push(id);
+
+    resultProduct=null;
+
+    updateReactants();
+    renderSubstances(search.value.toLowerCase());
+    drawScene();
+
+    status.textContent =
+        "Reactant added. Select more substances or run the reaction.";
+}
+
+
+function updateReactants(){
+
+    reactants.innerHTML="";
+
+    if(!selected.length){
+
+        reactants.innerHTML=
+            `<span style="color:#718ba3;font-size:13px;">
+                Select substances from the left
+            </span>`;
+
+        return;
+    }
+
+    selected.forEach((id,index)=>{
+
+        const substance =
+            substances.find(
+                s=>s.id===id
+            );
+
+        if(!substance) return;
+
+        const chip =
+            document.createElement("span");
+
+        chip.className="chip";
+
+        chip.textContent =
+            `${substance.formula} ×${index+1}`;
+
+        reactants.appendChild(chip);
+
+    });
+
+}
+
+
+/* =========================
+   CONDITIONS
+========================= */
+
+document
+.querySelectorAll(".condition")
+.forEach(button=>{
+
+    button.addEventListener(
+        "click",
+        ()=>{
+
+            const condition =
+                button.dataset.condition;
+
+            if(
+                conditions.has(condition)
+            ){
+
+                conditions.delete(condition);
+                button.classList.remove("active");
+
+            }else{
+
+                conditions.add(condition);
+                button.classList.add("active");
+
+            }
+
+            heat.classList.toggle(
+                "on",
+                conditions.has("heat")
+            );
+
+            status.textContent =
+                conditions.size
+                    ? "Condition updated."
+                    : "Ready.";
+
+        }
+    );
+
+});
+
+
+/* =========================
+   REACTION ENGINE
+========================= */
+
+function normalizedIds(ids){
+
+    return [...new Set(ids)]
+        .sort()
+        .join("|");
+
+}
+
+
+function findReaction(){
+
+    const selectedKey =
+        normalizedIds(selected);
+
+    if(!selectedKey){
+        return null;
+    }
+
+    for(
+        const reaction of reactions
+    ){
+
+        if(
+            normalizedIds(reaction.ids)
+            !== selectedKey
+        ){
+            continue;
+        }
+
+        const required =
+            Array.isArray(reaction.needs)
+                ? reaction.needs
+                : [];
+
+        const missing =
+            required.filter(
+                condition =>
+                    !conditions.has(condition)
+            );
+
+        if(missing.length){
+
+            return {
+                type:"missing-condition",
+                needs:missing,
+                reaction
+            };
+
+        }
+
+        return {
+            type:"reaction",
+            ...reaction
+        };
+
+    }
+
+    return {
+        type:"unknown",
+        reaction:null
+    };
+
+}
+
+
+/* =========================
+   RUN REACTION
+========================= */
+
+function runReaction(){
+
+    if(!selected.length){
+
+        resultEquation.textContent =
+            "No reactants selected";
+
+        status.textContent =
+            "Select at least one reactant.";
+
+        return;
+    }
+
+    const match =
+        findReaction();
+
+    if(
+        match &&
+        match.type==="missing-condition"
+    ){
+
+        resultProduct=null;
+
+        const names =
+            match.needs.map(
+                condition=>{
+                    if(condition==="heat")
+                        return "🔥 Heat";
+                    if(condition==="catalyst")
+                        return "⚗ Catalyst";
+                    if(condition==="light")
+                        return "💡 Light";
+                    if(condition==="pressure")
+                        return "⬆ Pressure";
+                    return condition;
+                }
+            ).join(", ");
+
+        resultEquation.textContent =
+            match.reaction.out;
+
+        status.textContent =
+            "Reaction waiting: Required condition — " +
+            names;
+
+        drawScene();
+
+        return;
+    }
+
+    if(
+        match &&
+        match.type==="reaction"
+    ){
+
+        resultEquation.textContent =
+            match.out;
+
+        resultProduct =
+            match.product || null;
+
+        status.textContent =
+            "✓ Reaction simulation complete";
+
+    }else{
+
+        const names =
+            selected.map(
+                id=>{
+                    const s =
+                        substances.find(
+                            x=>x.id===id
+                        );
+
+                    return s
+                        ? s.formula
+                        : id;
+                }
+            );
+
+        resultEquation.textContent =
+            names.join(" + ") +
+            " → simulation completed";
+
+        resultProduct=null;
+
+        status.textContent =
+            "No predefined reaction in this educational model.";
+
+    }
+
+    viewer.classList.remove("reacting");
+
+    void viewer.offsetWidth;
+
+    viewer.classList.add("reacting");
+
+    setTimeout(
+        ()=>{
+            viewer.classList.remove("reacting");
+        },
+        900
+    );
+
+    drawScene();
+
+}
+
+
+/* =========================
+   RESET
+========================= */
+
+function resetExperiment(){
+
+    selected=[];
+    conditions.clear();
+    resultProduct=null;
+
+    document
+    .querySelectorAll(".condition")
+    .forEach(
+        button=>{
+            button.classList.remove("active");
+        }
+    );
+
+    heat.classList.remove("on");
+
+    resultEquation.textContent =
+        "Select reactants and run a reaction";
+
+    status.textContent="Ready";
+
+    updateReactants();
+
+    renderSubstances(search.value.toLowerCase());
+
+    drawScene();
+
+}
+
+
+/* =========================
+   SEARCH
+========================= */
+
+search.addEventListener(
+    "input",
+    ()=>{
+        renderSubstances(
+            search.value
+                .trim()
+                .toLowerCase()
+        );
+    }
+);
+
+
+/* =========================
+   MOUSE / TOUCH ROTATION
+========================= */
+
+let dragging=false;
+let lastX=0;
+
+canvas.addEventListener(
+    "pointerdown",
+    e=>{
+
+        dragging=true;
+        lastX=e.clientX;
+
+        canvas.setPointerCapture(
+            e.pointerId
+        );
 
     }
 );
 
+canvas.addEventListener(
+    "pointermove",
+    e=>{
+
+        if(!dragging)
+            return;
+
+        const dx =
+            e.clientX-lastX;
+
+        lastX=e.clientX;
+
+        rotation += dx*.012;
+
+        drawScene();
+
+    }
+);
 
 canvas.addEventListener(
     "pointerup",
-    () => {
-
-        pointerDown =
-            false;
-
+    ()=>{
+        dragging=false;
     }
 );
-
 
 canvas.addEventListener(
     "pointercancel",
-    () => {
-
-        pointerDown =
-            false;
-
+    ()=>{
+        dragging=false;
     }
 );
 
 
-
-/* =========================================================
-   MOUSE WHEEL ZOOM
-========================================================= */
+/* =========================
+   ZOOM
+========================= */
 
 canvas.addEventListener(
     "wheel",
-    event => {
+    e=>{
 
-        event.preventDefault();
+        e.preventDefault();
 
-
-        if(
-            event.deltaY < 0
-        ){
-
-            zoom *=
-                1.08;
-
-        }
-        else{
-
-            zoom *=
-                .93;
-
-        }
-
+        zoom +=
+            e.deltaY < 0
+                ? .08
+                : -.08;
 
         zoom =
             Math.max(
                 .55,
-                Math.min(
-                    1.8,
-                    zoom
-                )
+                Math.min(1.7,zoom)
             );
 
+        drawScene();
+
     },
-    {
-        passive:false
-    }
+    {passive:false}
 );
 
 
+/* =========================
+   BUTTONS
+========================= */
 
-/* =========================================================
-   MOBILE PINCH ZOOM
-========================================================= */
+runButton.addEventListener(
+    "click",
+    runReaction
+);
 
-canvas.addEventListener(
-    "touchstart",
-    event => {
-
-        for(
-            const touch
-            of event.changedTouches
-        ){
-
-            touches.set(
-                touch.identifier,
-                {
-                    x:touch.clientX,
-                    y:touch.clientY
-                }
-            );
-
-        }
-
-
-        if(
-            touches.size === 2
-        ){
-
-            const points =
-                [
-                    ...touches.values()
-                ];
-
-
-            pinchStart =
-                Math.hypot(
-                    points[0].x -
-                    points[1].x,
-
-                    points[0].y -
-                    points[1].y
-                );
-
-
-            pinchZoom =
-                zoom;
-
-        }
-
-    },
-    {
-        passive:true
-    }
+resetButton.addEventListener(
+    "click",
+    resetExperiment
 );
 
 
-canvas.addEventListener(
-    "touchmove",
-    event => {
+/* =========================
+   START
+========================= */
 
-        if(
-            touches.size !== 2
-        ){
-            return;
-        }
-
-
-        for(
-            const touch
-            of event.changedTouches
-        ){
-
-            touches.set(
-                touch.identifier,
-                {
-                    x:touch.clientX,
-                    y:touch.clientY
-                }
-            );
-
-        }
-
-
-        const points =
-            [
-                ...touches.values()
-            ];
-
-
-        if(points.length >= 2){
-
-            const distance =
-                Math.hypot(
-                    points[0].x -
-                    points[1].x,
-
-                    points[0].y -
-                    points[1].y
-                );
-
-
-            if(pinchStart){
-
-                zoom =
-                    pinchZoom *
-                    distance /
-                    pinchStart;
-
-
-                zoom =
-                    Math.max(
-                        .55,
-                        Math.min(
-                            1.8,
-                            zoom
-                        )
-                    );
-
-            }
-
-        }
-
-    },
-    {
-        passive:true
-    }
-);
-
-
-canvas.addEventListener(
-    "touchend",
-    event => {
-
-        for(
-            const touch
-            of event.changedTouches
-        ){
-
-            touches.delete(
-                touch.identifier
-            );
-
-        }
-
-    },
-    {
-        passive:true
-    }
-);
-
-
-canvas.addEventListener(
-    "touchcancel",
-    event => {
-
-        for(
-            const touch
-            of event.changedTouches
-        ){
-
-            touches.delete(
-                touch.identifier
-            );
-
-        }
-
-    },
-    {
-        passive:true
-    }
-);
-
-
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
-renderLibrary();
-
-renderReactants();
+renderSubstances();
 
 resizeCanvas();
-
-drawScene();
 
 </script>
 
