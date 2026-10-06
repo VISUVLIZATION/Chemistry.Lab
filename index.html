@@ -1,80 +1,2947 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ChemLab 3D</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no">
+
+<meta name="theme-color" content="#07111f">
+
+<title>ChemLab 3D — Chemical Reaction Simulator</title>
+
 <style>
-:root{--bg:#f3f5fa;--card:#fff;--tx:#141a2e;--mu:#667090;--ac:#2f6bff;--bd:#d9dfee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1020;--card:#161c33;--tx:#eef1fb;--mu:#8f99ba;--bd:#283052}}
-:root[data-theme="dark"]{--bg:#0c1020;--card:#161c33;--tx:#eef1fb;--mu:#8f99ba;--bd:#283052}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0 auto;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:12px;max-width:640px}
-h1{font-size:20px;margin:4px 0 10px}
-#stage{height:300px;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#26326e,#090c1b)}
-canvas{width:100%;height:100%;display:block}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin:10px 0}
-#eq{font-size:20px;font-weight:600;text-align:center;min-height:30px}
-#hint{color:var(--mu);font-size:13px;text-align:center;margin-top:2px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
-.g4{grid-template-columns:repeat(4,1fr)}
-button{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:9px 4px;cursor:pointer}
-button small{display:block;color:var(--mu);font-size:10px}
-button.on{border-color:var(--ac);background:var(--ac);color:#fff}button.on small{color:#dfe8ff}
-button:disabled{opacity:.4;cursor:default}
-.row{display:flex;gap:8px;margin:8px 0}.row button{flex:1}
-.go{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
-h3{font-size:14px;margin:14px 0 4px;color:var(--mu);font-weight:600}
-#q{width:100%;padding:10px 12px;margin-top:10px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit}#chips{max-height:232px;overflow-y:auto}#conc{margin:0}
-#res .e{font-size:19px;font-weight:700;margin:6px 0}
-</style></head><body>
-<h1>⚗️ ChemLab 3D</h1>
-<div id="err" style="display:none;background:#b3261e;color:#fff;padding:10px;border-radius:10px;margin-bottom:8px;font-size:13px"></div>
-<div id="stage"><canvas></canvas></div>
-<div class="card"><div id="eq">Pick a substance</div><div id="hint"></div></div>
-<input id="q" type="search" placeholder="🔍 Search substances (acid, Cu, salt, gas…)">
-<div class="row" id="conc" style="display:none"><button data-k="d">💧 Dilute</button><button data-k="c">🧪 Concentrated</button></div>
-<div class="grid" id="chips"></div>
-<div class="row"><button id="plus">＋ Add sign</button><button id="end">✓ End reactants</button></div>
-<h3>Catalyst</h3><div class="grid g4" id="cats"></div>
-<h3>Heat</h3><div class="row"><button id="heat">🔥 Heat: OFF</button></div>
-<div class="row"><button class="go" id="go">▶ React</button><button id="reset">↺ Reset</button></div>
-<div class="card" id="res" style="display:none"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #07111f;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header {
+    height: 70px;
+    padding: 0 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    background: #0b192b;
+    border-bottom: 1px solid #23354d;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.logo span {
+    color: #42d9ff;
+}
+
+.header-status {
+    color: #91a7c0;
+    font-size: 13px;
+}
+
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
+
+.app {
+    width: 100%;
+    min-height: calc(100vh - 70px);
+
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr) 330px;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar {
+    background: #0b1727;
+    border-right: 1px solid #23354d;
+
+    padding: 18px;
+
+    overflow-y: auto;
+}
+
+.sidebar h2,
+.right-panel h2 {
+    margin: 0 0 15px;
+    font-size: 18px;
+}
+
+.search {
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border: 1px solid #2a405c;
+    border-radius: 10px;
+
+    background: #07111f;
+    color: white;
+
+    outline: none;
+}
+
+.search:focus {
+    border-color: #42d9ff;
+}
+
+.substances {
+    margin-top: 15px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+}
+
+.substance {
+    min-height: 72px;
+
+    padding: 10px;
+
+    border: 1px solid #263d58;
+    border-radius: 12px;
+
+    background: #101f33;
+    color: white;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition:
+        transform .15s ease,
+        border-color .15s ease,
+        background .15s ease;
+}
+
+.substance:hover {
+    transform: translateY(-2px);
+    border-color: #42d9ff;
+    background: #142941;
+}
+
+.substance:active {
+    transform: scale(.97);
+}
+
+.atom-symbol {
+    font-size: 23px;
+    font-weight: 800;
+    color: #42d9ff;
+}
+
+.atom-name {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #a8b8ca;
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.main {
+    min-width: 0;
+    background: #07111f;
+}
+
+/* =========================================================
+   3D VIEWER
+========================================================= */
+
+.viewer {
+    position: relative;
+
+    width: 100%;
+    height: 57vh;
+    min-height: 380px;
+
+    background: #07111f;
+
+    overflow: hidden;
+}
+
+#three-container {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #10243b 0%,
+            #07111f 65%
+        );
+
+    touch-action: none;
+    overscroll-behavior: contain;
+}
+
+#three-container canvas {
+    display: block;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    touch-action: none;
+
+    cursor: grab;
+}
+
+#three-container canvas:active {
+    cursor: grabbing;
+}
+
+/* Viewer title */
+
+.viewer-label {
+    position: absolute;
+
+    top: 15px;
+    left: 15px;
+
+    z-index: 5;
+
+    padding: 8px 12px;
+
+    border-radius: 9px;
+
+    background: rgba(4, 12, 23, .75);
+
+    border: 1px solid #263d58;
+
+    color: #dcecff;
+
+    font-size: 13px;
+
+    pointer-events: none;
+}
+
+/* Viewer instructions */
+
+.viewer-help {
+    position: absolute;
+
+    right: 15px;
+    bottom: 15px;
+
+    z-index: 5;
+
+    padding: 7px 10px;
+
+    border-radius: 8px;
+
+    background: rgba(4, 12, 23, .75);
+
+    border: 1px solid #263d58;
+
+    color: #91a7c0;
+
+    font-size: 11px;
+
+    pointer-events: none;
+}
+
+/* Viewer error */
+
+.viewer-error {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 10;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 25px;
+
+    text-align: center;
+
+    color: #a8b8ca;
+
+    background: #07111f;
+}
+
+.viewer-error > div {
+    max-width: 430px;
+
+    padding: 25px;
+
+    border: 1px solid #263d58;
+    border-radius: 15px;
+
+    background: #0b192b;
+}
+
+.viewer-error strong {
+    display: block;
+
+    margin-bottom: 10px;
+
+    color: #42d9ff;
+
+    font-size: 18px;
+}
+
+/* =========================================================
+   REACTION AREA
+========================================================= */
+
+.reaction-area {
+    padding: 20px;
+
+    border-top: 1px solid #23354d;
+}
+
+.section-title {
+    margin-bottom: 12px;
+
+    color: #91a7c0;
+
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.reactants {
+    min-height: 65px;
+
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    padding: 12px;
+
+    border: 1px solid #263d58;
+    border-radius: 12px;
+
+    background: #0b1727;
+}
+
+.reactant {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 8px 11px;
+
+    border-radius: 9px;
+
+    background: #13263d;
+
+    border: 1px solid #2d4968;
+}
+
+.reactant-symbol {
+    color: #42d9ff;
+    font-weight: bold;
+}
+
+.plus {
+    color: #657c96;
+    font-weight: bold;
+}
+
+.empty-reactants {
+    color: #657c96;
+    font-size: 13px;
+}
+
+/* =========================================================
+   CONDITIONS
+========================================================= */
+
+.conditions {
+    margin-top: 15px;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.condition {
+    padding: 9px 13px;
+
+    border-radius: 9px;
+
+    border: 1px solid #2a405c;
+
+    background: #101f33;
+
+    color: #b8c8d9;
+
+    cursor: pointer;
+}
+
+.condition.selected {
+    border-color: #42d9ff;
+    color: #42d9ff;
+    background: #102d40;
+}
+
+/* =========================================================
+   RUN BUTTON
+========================================================= */
+
+.run {
+    width: 100%;
+
+    margin-top: 18px;
+
+    padding: 14px;
+
+    border: 0;
+    border-radius: 12px;
+
+    background: #42d9ff;
+
+    color: #04101b;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition: transform .15s ease;
+}
+
+.run:hover {
+    transform: translateY(-1px);
+}
+
+.run:active {
+    transform: scale(.98);
+}
+
+/* =========================================================
+   RIGHT PANEL
+========================================================= */
+
+.right-panel {
+    background: #0b1727;
+
+    border-left: 1px solid #23354d;
+
+    padding: 18px;
+
+    overflow-y: auto;
+}
+
+.result-box {
+    min-height: 160px;
+
+    padding: 16px;
+
+    border: 1px solid #263d58;
+    border-radius: 12px;
+
+    background: #101f33;
+}
+
+.result-label {
+    margin-bottom: 10px;
+
+    color: #91a7c0;
+
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.formula {
+    color: #42d9ff;
+
+    font-size: 20px;
+    font-weight: 800;
+
+    line-height: 1.5;
+}
+
+.result-name {
+    margin-top: 8px;
+
+    color: #b8c8d9;
+
+    font-size: 13px;
+}
+
+.reset {
+    width: 100%;
+
+    margin-top: 12px;
+
+    padding: 11px;
+
+    border: 1px solid #2a405c;
+    border-radius: 10px;
+
+    background: #101f33;
+
+    color: white;
+
+    cursor: pointer;
+}
+
+.reset:hover {
+    border-color: #42d9ff;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .app {
+        grid-template-columns: 250px minmax(0, 1fr);
+    }
+
+    .right-panel {
+        grid-column: 1 / -1;
+
+        border-left: 0;
+        border-top: 1px solid #23354d;
+    }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    header {
+        height: 60px;
+        padding: 0 15px;
+    }
+
+    .logo {
+        font-size: 21px;
+    }
+
+    .header-status {
+        font-size: 10px;
+    }
+
+    .app {
+        display: block;
+
+        min-height: calc(100vh - 60px);
+    }
+
+    .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid #23354d;
+
+        padding: 14px;
+    }
+
+    .main {
+        width: 100%;
+    }
+
+    .right-panel {
+        border-left: 0;
+        border-top: 1px solid #23354d;
+
+        padding: 14px;
+    }
+
+    .viewer {
+        width: 100%;
+
+        height: 52vh;
+
+        min-height: 330px;
+        max-height: 560px;
+    }
+
+    .reaction-area {
+        padding: 14px;
+    }
+
+    .substances {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .viewer-label {
+        top: 9px;
+        left: 9px;
+
+        font-size: 11px;
+    }
+
+    .viewer-help {
+        right: 9px;
+        bottom: 9px;
+
+        font-size: 9px;
+    }
+
+    .run {
+        padding: 15px;
+
+        font-size: 15px;
+    }
+}
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .viewer {
+        height: 48vh;
+        min-height: 300px;
+    }
+
+    .substances {
+        grid-template-columns: 1fr;
+    }
+
+    .substance {
+        min-height: 60px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =======================================================
+     HEADER
+======================================================= -->
+
+<header>
+
+    <div class="logo">
+        Chem<span>Lab</span> 3D
+    </div>
+
+    <div class="header-status">
+        Chemical Reaction Simulator
+    </div>
+
+</header>
+
+
+<!-- =======================================================
+     APP
+======================================================= -->
+
+<div class="app">
+
+
+    <!-- ===================================================
+         LEFT SIDEBAR
+    ==================================================== -->
+
+    <aside class="sidebar">
+
+        <h2>Substances</h2>
+
+        <input
+            id="search"
+            class="search"
+            type="search"
+            placeholder="Search substance..."
+            autocomplete="off"
+        >
+
+        <div
+            id="substances"
+            class="substances">
+        </div>
+
+    </aside>
+
+
+    <!-- ===================================================
+         MAIN
+    ==================================================== -->
+
+    <main class="main">
+
+
+        <!-- ===============================================
+             3D VIEWER
+        ================================================ -->
+
+        <section class="viewer">
+
+            <div
+                id="three-container">
+
+                <div
+                    id="viewerError"
+                    class="viewer-error">
+
+                    <div>
+
+                        <strong>
+                            Loading 3D laboratory...
+                        </strong>
+
+                        Please wait while the molecular
+                        viewer starts.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="viewerTitle"
+                class="viewer-label">
+
+                Select a substance
+
+            </div>
+
+
+            <div class="viewer-help">
+
+                Drag = rotate • Pinch = zoom
+
+            </div>
+
+        </section>
+
+
+        <!-- ===============================================
+             REACTION AREA
+        ================================================ -->
+
+        <section class="reaction-area">
+
+            <div class="section-title">
+                Reactants
+            </div>
+
+            <div
+                id="reactants"
+                class="reactants">
+
+                <div class="empty-reactants">
+                    Select substances from the left.
+                </div>
+
+            </div>
+
+
+            <div class="section-title"
+                 style="margin-top:18px">
+
+                Conditions
+
+            </div>
+
+            <div class="conditions">
+
+                <button
+                    class="condition"
+                    data-condition="heat">
+
+                    🔥 Heat
+
+                </button>
+
+                <button
+                    class="condition"
+                    data-condition="catalyst">
+
+                    ⚗ Catalyst
+
+                </button>
+
+                <button
+                    class="condition"
+                    data-condition="light">
+
+                    💡 Light
+
+                </button>
+
+                <button
+                    class="condition"
+                    data-condition="pressure">
+
+                    🧪 Pressure
+
+                </button>
+
+            </div>
+
+
+            <button
+                id="runButton"
+                class="run">
+
+                ▶ Run Reaction
+
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <!-- ===================================================
+         RIGHT PANEL
+    ==================================================== -->
+
+    <aside class="right-panel">
+
+        <h2>Reaction Result</h2>
+
+        <div class="result-box">
+
+            <div class="result-label">
+                Product
+            </div>
+
+            <div
+                id="formula"
+                class="formula">
+
+                —
+
+            </div>
+
+            <div
+                id="resultName"
+                class="result-name">
+
+                Select reactants and run a reaction.
+
+            </div>
+
+        </div>
+
+
+        <button
+            id="resetButton"
+            class="reset">
+
+            ↺ Reset Experiment
+
+        </button>
+
+    </aside>
+
+</div>
+
+
+<!-- =======================================================
+     JAVASCRIPT
+======================================================= -->
+
 <script>
-const $=s=>document.querySelector(s);
-window.onerror=function(m,u,l){var e=document.getElementById('err');e.style.display='block';e.textContent='Error: '+m+' (line '+l+')'};
-let G3=false;try{const t=document.createElement('canvas');G3=!!(window.THREE&&(t.getContext('webgl')||t.getContext('experimental-webgl')))}catch(e){}
-if(!G3){$('#stage').innerHTML='<div style="color:#fff;padding:24px;text-align:center;font-size:14px">3D view is not available on this device or browser. Everything else still works: pick substances, react, and read the result below.</div>';const D=()=>new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:k==='children'?[]:D(),apply:()=>D(),construct:()=>D(),set:()=>true});window.THREE=D()}
-const EL={H:[0xf2f2f2,.32],O:[0xff4040,.46],C:[0x4b515c,.5],N:[0x3d6bff,.46],Cl:[0x3ddc66,.62],Na:[0xb36bff,.72],Mg:[0x9be36b,.62],Ca:[0xe6cf9f,.75],Cu:[0xd8793a,.62],K:[0x8f5bd6,.8],Zn:[0x8fa0b8,.6],Fe:[0xb5651d,.6],Ag:[0xcdd3da,.7],Ba:[0x6fbf5a,.85],S:[0xf2d83a,.55]};
-const A=s=>s.split(';').map(a=>{const p=a.split(' ');return[p[0],+p[1],+p[2],+p[3]]});
-const so4=c=>`S 0 0 0;O .81 .81 .81;O .81 -.81 -.81;O -.81 .81 -.81;O -.81 -.81 .81;${c} 1.62 1.62 1.62`,
-tri=(m,c)=>`${m} 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;${c} 2.65 0 0`,
-ip=(a,b)=>`${a} -.72 0 0;${b} .72 0 0`,mx2=m=>`${m} 0 0 0;Cl -1.45 0 0;Cl 1.45 0 0`,one=e=>`${e} 0 0 0`,
-NH3a='N 0 .15 0;H .9 -.35 0;H -.45 -.35 .78;H -.45 -.35 -.78';
-const M={
-H2:['Hydrogen','H₂','H -.38 0 0;H .38 0 0','gas'],O2:['Oxygen','O₂','O -.6 0 0;O .6 0 0','gas'],
-N2:['Nitrogen','N₂','N -.55 0 0;N .55 0 0','gas'],Cl2:['Chlorine','Cl₂','Cl -.7 0 0;Cl .7 0 0','gas'],
-CO2:['Carbon dioxide','CO₂','C 0 0 0;O -1.2 0 0;O 1.2 0 0','gas'],
-CH4:['Methane','CH₄','C 0 0 0;H .58 .58 .58;H .58 -.58 -.58;H -.58 .58 -.58;H -.58 -.58 .58','gas'],
-H2O:['Water','H₂O','O 0 -.3 0;H .8 .3 0;H -.8 .3 0','liquid'],
-H2O2:['Hydrogen peroxide','H₂O₂','O -.7 0 0;O .7 0 0;H -1.1 .9 0;H 1.1 -.5 .75','liquid'],
-HCl:['Hydrochloric acid','HCl','H -.65 0 0;Cl .65 0 0','acid',0xd8f0a0],
-H2SO4:['Sulfuric acid','H₂SO₄','S 0 0 0;O .81 .81 .81;O .81 -.81 -.81;O -.81 .81 -.81;O -.81 -.81 .81;H 1.3 1.3 1.3;H -1.3 -1.3 1.3','acid',0xe8e8c0],
-HNO3:['Nitric acid','HNO₃','N 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;H -1.1 1.7 0','acid',0xf0e090],
-CH3COOH:['Acetic acid (vinegar)','CH₃COOH','C -.72 0 0;C .72 0 0;O 1.3 1.05 0;O 1.4 -.9 0;H -1.1 1 0;H -1.1 -.5 .87;H -1.1 -.5 -.87;H 2.3 -.9 0','acid',0xe8c080],
-NaOH:['Sodium hydroxide','NaOH','Na -1.4 0 0;O 0 0 0;H .95 0 0','base',0xcfe0ff],
-KOH:['Potassium hydroxide','KOH','K -1.45 0 0;O 0 0 0;H .95 0 0','base',0xcfe0ff],
-NH3:['Ammonia','NH₃',NH3a,'base',0xd0f0ff],
-CaOH2:['Limewater','Ca(OH)₂','Ca 0 0 0;O -1.4 0 0;O 1.4 0 0;H -2.3 .3 0;H 2.3 .3 0','salt',0xe8f4ff],
-Na:['Sodium','Na',one('Na'),'metal'],K:['Potassium','K',one('K'),'metal'],Mg:['Magnesium','Mg',one('Mg'),'metal'],
-Zn:['Zinc','Zn',one('Zn'),'metal'],Fe:['Iron','Fe',one('Fe'),'metal'],Cu:['Copper','Cu',one('Cu'),'metal'],
-C:['Carbon','C',one('C'),'solid'],CuO:['Copper(II) oxide','CuO',ip('Cu','O'),'solid'],CaO:['Quicklime','CaO','Ca -.72 0 0;O .72 0 0','solid'],
-CaCO3:['Calcium carbonate (chalk)','CaCO₃',tri('C','Ca'),'solid'],Na2CO3:['Sodium carbonate','Na₂CO₃','C 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;Na 2.6 0 0;Na -1.3 2.25 0','solid'],
-NaHCO3:['Baking soda','NaHCO₃','C 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;Na 2.6 0 0;H -1.1 1.7 0','solid'],
-NaCl:['Sodium chloride','NaCl',ip('Na','Cl'),'salt'],CuSO4:['Copper(II) sulfate','CuSO₄',so4('Cu'),'salt',0x2f86ff],
-AgNO3:['Silver nitrate','AgNO₃',tri('N','Ag'),'salt'],BaCl2:['Barium chloride','BaCl₂',mx2('Ba'),'salt'],
-MgO:['Magnesium oxide','MgO',ip('Mg','O'),'solid'],ZnCl2:['Zinc chloride','ZnCl₂',mx2('Zn'),'salt'],MgCl2:['Magnesium chloride','MgCl₂',mx2('Mg'),'salt'],
-KCl:['Potassium chloride','KCl',ip('K','Cl'),'salt'],CaCl2:['Calcium chloride','CaCl₂',mx2('Ca'),'salt'],
-ZnSO4:['Zinc sulfate','ZnSO₄',so4('Zn'),'salt'],FeSO4:['Iron(II) sulfate','FeSO₄',so4('Fe'),'salt',0x9fe0b0],
-Na2SO4:['Sodium sulfate','Na₂SO₄','S 0 0 0;O .81 .81 .81;O .81 -.81 -.81;O -.81 .81 -.81;O -.81 -.81 .81;Na 1.62 1.62 1.62;Na -1.62 -1.62 1.62','salt'],
-NaNO3:['Sodium nitrate','NaNO₃',tri('N','Na'),'salt'],AgCl:['Silver chloride','AgCl',ip('Ag','Cl'),'solid'],BaSO4:['Barium sulfate','BaSO₄',so4('Ba'),'solid'],
-CH3COON
+
+/* =========================================================
+   SUBSTANCE DATABASE
+========================================================= */
+
+const substances = [
+
+    {
+        id: "H2",
+        symbol: "H₂",
+        element: "H",
+        name: "Hydrogen",
+        type: "gas"
+    },
+
+    {
+        id: "O2",
+        symbol: "O₂",
+        element: "O",
+        name: "Oxygen",
+        type: "gas"
+    },
+
+    {
+        id: "N2",
+        symbol: "N₂",
+        element: "N",
+        name: "Nitrogen",
+        type: "gas"
+    },
+
+    {
+        id: "Cl2",
+        symbol: "Cl₂",
+        element: "Cl",
+        name: "Chlorine",
+        type: "gas"
+    },
+
+    {
+        id: "H2O",
+        symbol: "H₂O",
+        element: "O",
+        name: "Water",
+        type: "liquid"
+    },
+
+    {
+        id: "CO2",
+        symbol: "CO₂",
+        element: "C",
+        name: "Carbon dioxide",
+        type: "gas"
+    },
+
+    {
+        id: "C",
+        symbol: "C",
+        element: "C",
+        name: "Carbon",
+        type: "solid"
+    },
+
+    {
+        id: "Na",
+        symbol: "Na",
+        element: "Na",
+        name: "Sodium",
+        type: "solid"
+    },
+
+    {
+        id: "Ca",
+        symbol: "Ca",
+        element: "Ca",
+        name: "Calcium",
+        type: "solid"
+    }
+
+];
+
+
+/* =========================================================
+   REACTION DATABASE
+========================================================= */
+
+const reactions = [
+
+    {
+        reactants: ["H2", "O2"],
+        product: "H2O",
+        formula: "2H₂ + O₂ → 2H₂O",
+        name: "Water"
+    },
+
+    {
+        reactants: ["C", "O2"],
+        product: "CO2",
+        formula: "C + O₂ → CO₂",
+        name: "Carbon dioxide"
+    },
+
+    {
+        reactants: ["N2", "H2"],
+        product: "NH3",
+        formula: "N₂ + 3H₂ → 2NH₃",
+        name: "Ammonia"
+    },
+
+    {
+        reactants: ["Na", "Cl2"],
+        product: "NaCl",
+        formula: "2Na + Cl₂ → 2NaCl",
+        name: "Sodium chloride"
+    }
+
+];
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
+let selectedReactants = [];
+
+let selectedConditions = [];
+
+let scene = null;
+
+let camera = null;
+
+let renderer = null;
+
+let moleculeGroup = null;
+
+let dragging = false;
+
+let lastX = 0;
+
+let lastY = 0;
+
+let rotX = 0;
+
+let rotY = 0;
+
+let zoom = 7;
+
+let THREE_READY = false;
+
+const container =
+    document.getElementById("three-container");
+
+
+/* =========================================================
+   DOM REFERENCES
+========================================================= */
+
+const substancesBox =
+    document.getElementById("substances");
+
+const reactantsBox =
+    document.getElementById("reactants");
+
+const searchBox =
+    document.getElementById("search");
+
+const viewerTitle =
+    document.getElementById("viewerTitle");
+
+const formulaBox =
+    document.getElementById("formula");
+
+const resultName =
+    document.getElementById("resultName");
+
+const runButton =
+    document.getElementById("runButton");
+
+const resetButton =
+    document.getElementById("resetButton");
+
+
+/* =========================================================
+   RENDER SUBSTANCES
+========================================================= */
+
+function renderSubstances(filter = "") {
+
+    const text =
+        filter.trim().toLowerCase();
+
+    substancesBox.innerHTML = "";
+
+    const filtered =
+        substances.filter(item =>
+            item.name.toLowerCase().includes(text) ||
+            item.symbol.toLowerCase().includes(text)
+        );
+
+    if (filtered.length === 0) {
+
+        substancesBox.innerHTML =
+            `<div style="
+                grid-column:1/-1;
+                color:#657c96;
+                font-size:13px;
+                padding:10px;
+            ">
+                No substance found.
+            </div>`;
+
+        return;
+    }
+
+    filtered.forEach(item => {
+
+        const button =
+            document.createElement("button");
+
+        button.className = "substance";
+
+        button.innerHTML = `
+            <div class="atom-symbol">
+                ${item.symbol}
+            </div>
+
+            <div class="atom-name">
+                ${item.name}
+            </div>
+        `;
+
+        button.addEventListener(
+            "click",
+            () => selectSubstance(item)
+        );
+
+        substancesBox.appendChild(button);
+
+    });
+
+}
+
+
+/* =========================================================
+   SELECT SUBSTANCE
+========================================================= */
+
+function selectSubstance(item) {
+
+    selectedReactants.push(item.id);
+
+    renderReactants();
+
+    showMolecule(item);
+
+}
+
+
+/* =========================================================
+   RENDER REACTANTS
+========================================================= */
+
+function renderReactants() {
+
+    reactantsBox.innerHTML = "";
+
+    if (selectedReactants.length === 0) {
+
+        reactantsBox.innerHTML = `
+            <div class="empty-reactants">
+                Select substances from the left.
+            </div>
+        `;
+
+        return;
+    }
+
+    selectedReactants.forEach((id, index) => {
+
+        const item =
+            substances.find(
+                substance => substance.id === id
+            );
+
+        if (!item) return;
+
+        if (index > 0) {
+
+            const plus =
+                document.createElement("span");
+
+            plus.className = "plus";
+
+            plus.textContent = "+";
+
+            reactantsBox.appendChild(plus);
+        }
+
+        const div =
+            document.createElement("div");
+
+        div.className = "reactant";
+
+        div.innerHTML = `
+            <span class="reactant-symbol">
+                ${item.symbol}
+            </span>
+
+            <span>
+                ${item.name}
+            </span>
+        `;
+
+        reactantsBox.appendChild(div);
+
+    });
+
+}
+
+
+/* =========================================================
+   CONDITIONS
+========================================================= */
+
+document
+    .querySelectorAll(".condition")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const condition =
+                    button.dataset.condition;
+
+                if (
+                    selectedConditions.includes(condition)
+                ) {
+
+                    selectedConditions =
+                        selectedConditions.filter(
+                            item => item !== condition
+                        );
+
+                    button.classList.remove("selected");
+
+                } else {
+
+                    selectedConditions.push(condition);
+
+                    button.classList.add("selected");
+
+                }
+
+            }
+        );
+
+    });
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+searchBox.addEventListener(
+    "input",
+    event => {
+
+        renderSubstances(
+            event.target.value
+        );
+
+    }
+);
+
+
+/* =========================================================
+   VIEWER ERROR
+========================================================= */
+
+function showViewerError(title, message) {
+
+    const box =
+        document.getElementById("viewerError");
+
+    if (!box) return;
+
+    box.innerHTML = `
+        <div>
+
+            <strong>
+                ${title}
+            </strong>
+
+            ${message}
+
+        </div>
+    `;
+
+    box.style.display = "flex";
+}
+
+
+/* =========================================================
+   THREE.JS SCRIPT LOADER
+========================================================= */
+
+function loadClassicScript(src) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const script =
+                document.createElement("script");
+
+            script.src = src;
+
+            script.async = true;
+
+            script.onload = () => resolve();
+
+            script.onerror = () =>
+                reject(
+                    new Error(
+                        "Could not load " + src
+                    )
+                );
+
+            document.head.appendChild(script);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LOAD THREE.JS
+========================================================= */
+
+async function loadThree() {
+
+    if (window.THREE) {
+
+        THREE_READY = true;
+
+        return window.THREE;
+
+    }
+
+
+    /*
+       First try the module version.
+       This is the preferred modern method.
+    */
+
+    const moduleSources = [
+
+        "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+
+        "https://unpkg.com/three@0.161.0/build/three.module.js"
+
+    ];
+
+
+    for (const src of moduleSources) {
+
+        try {
+
+            const module =
+                await import(src);
+
+            window.THREE = module;
+
+            THREE_READY = true;
+
+            return module;
+
+        } catch (error) {
+
+            console.warn(
+                "Three module failed:",
+                src
+            );
+
+        }
+
+    }
+
+
+    /*
+       Classic fallback.
+    */
+
+    const classicSources = [
+
+        "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js",
+
+        "https://unpkg.com/three@0.161.0/build/three.min.js"
+
+    ];
+
+
+    for (const src of classicSources) {
+
+        try {
+
+            await loadClassicScript(src);
+
+            if (window.THREE) {
+
+                THREE_READY = true;
+
+                return window.THREE;
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Three classic script failed:",
+                src
+            );
+
+        }
+
+    }
+
+
+    throw new Error(
+        "Three.js could not be loaded."
+    );
+
+}
+
+
+/* =========================================================
+   INITIALIZE THREE.JS
+========================================================= */
+
+function initThree() {
+
+    /*
+       Test WebGL 2 BEFORE creating renderer.
+    */
+
+    const testCanvas =
+        document.createElement("canvas");
+
+    const testContext =
+        testCanvas.getContext(
+            "webgl2",
+            {
+                powerPreference: "low-power"
+            }
+        );
+
+
+    if (!testContext) {
+
+        showViewerError(
+            "3D is not available",
+            "This browser or device does not provide WebGL 2. The rest of ChemLab will still work."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Release temporary test context.
+    */
+
+    const loseContext =
+        testContext.getExtension(
+            "WEBGL_lose_context"
+        );
+
+    if (loseContext) {
+
+        loseContext.loseContext();
+
+    }
+
+
+    /* Scene */
+
+    scene =
+        new THREE.Scene();
+
+    scene.background =
+        new THREE.Color(
+            0x07111f
+        );
+
+
+    /* Camera */
+
+    const width =
+        Math.max(
+            container.clientWidth,
+            1
+        );
+
+    const height =
+        Math.max(
+            container.clientHeight,
+            1
+        );
+
+
+    camera =
+        new THREE.PerspectiveCamera(
+            45,
+            width / height,
+            0.1,
+            100
+        );
+
+
+    camera.position.z =
+        zoom;
+
+
+    /* Renderer */
+
+    try {
+
+        renderer =
+            new THREE.WebGLRenderer({
+
+                antialias: true,
+
+                alpha: false,
+
+                powerPreference:
+                    "low-power",
+
+                failIfMajorPerformanceCaveat:
+                    false
+
+            });
+
+    } catch (error) {
+
+        console.error(
+            "Renderer error:",
+            error
+        );
+
+        showViewerError(
+            "3D could not start",
+            "Your device's graphics system could not start the 3D renderer."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Keep GPU load reasonable on mobile.
+    */
+
+    renderer.setPixelRatio(
+        Math.min(
+            window.devicePixelRatio || 1,
+            1.5
+        )
+    );
+
+
+    renderer.setSize(
+        width,
+        height,
+        false
+    );
+
+
+    renderer.domElement.style.width =
+        "100%";
+
+    renderer.domElement.style.height =
+        "100%";
+
+    renderer.domElement.style.display =
+        "block";
+
+    renderer.domElement.style.touchAction =
+        "none";
+
+
+    container.insertBefore(
+        renderer.domElement,
+        container.firstChild
+    );
+
+
+    /* Lights */
+
+    const ambient =
+        new THREE.AmbientLight(
+            0xffffff,
+            1.8
+        );
+
+    scene.add(ambient);
+
+
+    const key =
+        new THREE.DirectionalLight(
+            0xffffff,
+            2.2
+        );
+
+    key.position.set(
+        5,
+        6,
+        8
+    );
+
+    scene.add(key);
+
+
+    const fill =
+        new THREE.DirectionalLight(
+            0x8ac8ff,
+            1.0
+        );
+
+    fill.position.set(
+        -5,
+        2,
+        4
+    );
+
+    scene.add(fill);
+
+
+    /* Molecule group */
+
+    moleculeGroup =
+        new THREE.Group();
+
+    scene.add(
+        moleculeGroup
+    );
+
+
+    /* Remove loading message */
+
+    const errorBox =
+        document.getElementById(
+            "viewerError"
+        );
+
+    if (errorBox) {
+
+        errorBox.remove();
+
+    }
+
+
+    /* Resize */
+
+    window.addEventListener(
+        "resize",
+        resizeThree,
+        {
+            passive: true
+        }
+    );
+
+
+    window.addEventListener(
+        "orientationchange",
+        () => {
+
+            setTimeout(
+                resizeThree,
+                200
+            );
+
+        },
+        {
+            passive: true
+        }
+    );
+
+
+    /* =====================================================
+       POINTER / TOUCH ROTATION
+    ====================================================== */
+
+    renderer.domElement.addEventListener(
+        "pointerdown",
+        event => {
+
+            dragging = true;
+
+            lastX =
+                event.clientX;
+
+            lastY =
+                event.clientY;
+
+            try {
+
+                renderer
+                    .domElement
+                    .setPointerCapture(
+                        event.pointerId
+                    );
+
+            } catch (_) {}
+
+        }
+    );
+
+
+    renderer.domElement.addEventListener(
+        "pointermove",
+        event => {
+
+            if (!dragging) return;
+
+            const dx =
+                event.clientX - lastX;
+
+            const dy =
+                event.clientY - lastY;
+
+            rotY +=
+                dx * 0.012;
+
+            rotX +=
+                dy * 0.012;
+
+
+            rotX =
+                Math.max(
+                    -1.45,
+                    Math.min(
+                        1.45,
+                        rotX
+                    )
+                );
+
+
+            lastX =
+                event.clientX;
+
+            lastY =
+                event.clientY;
+
+        }
+    );
+
+
+    renderer.domElement.addEventListener(
+        "pointerup",
+        event => {
+
+            dragging = false;
+
+            try {
+
+                renderer
+                    .domElement
+                    .releasePointerCapture(
+                        event.pointerId
+                    );
+
+            } catch (_) {}
+
+        }
+    );
+
+
+    renderer.domElement.addEventListener(
+        "pointercancel",
+        () => {
+
+            dragging = false;
+
+        }
+    );
+
+
+    /* =====================================================
+       DESKTOP WHEEL ZOOM
+    ====================================================== */
+
+    renderer.domElement.addEventListener(
+        "wheel",
+        event => {
+
+            event.preventDefault();
+
+            zoom +=
+                event.deltaY * 0.01;
+
+            zoom =
+                Math.max(
+                    3.5,
+                    Math.min(
+                        14,
+                        zoom
+                    )
+                );
+
+            camera.position.z =
+                zoom;
+
+        },
+        {
+            passive: false
+        }
+    );
+
+
+    /* =====================================================
+       MOBILE PINCH ZOOM
+    ====================================================== */
+
+    let pinchStartDistance = 0;
+
+    let pinchStartZoom = zoom;
+
+
+    renderer.domElement.addEventListener(
+        "touchstart",
+        event => {
+
+            if (
+                event.touches.length === 2
+            ) {
+
+                const dx =
+                    event.touches[0].clientX -
+                    event.touches[1].clientX;
+
+                const dy =
+                    event.touches[0].clientY -
+                    event.touches[1].clientY;
+
+
+                pinchStartDistance =
+                    Math.hypot(
+                        dx,
+                        dy
+                    );
+
+
+                pinchStartZoom =
+                    zoom;
+
+            }
+
+        },
+        {
+            passive: false
+        }
+    );
+
+
+    renderer.domElement.addEventListener(
+        "touchmove",
+        event => {
+
+            if (
+                event.touches.length !== 2
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+
+
+            const dx =
+                event.touches[0].clientX -
+                event.touches[1].clientX;
+
+            const dy =
+                event.touches[0].clientY -
+                event.touches[1].clientY;
+
+
+            const distance =
+                Math.hypot(
+                    dx,
+                    dy
+                );
+
+
+            if (
+                pinchStartDistance > 0
+            ) {
+
+                zoom =
+                    pinchStartZoom -
+                    (
+                        distance -
+                        pinchStartDistance
+                    ) * 0.012;
+
+
+                zoom =
+                    Math.max(
+                        3.5,
+                        Math.min(
+                            14,
+                            zoom
+                        )
+                    );
+
+
+                camera.position.z =
+                    zoom;
+
+            }
+
+        },
+        {
+            passive: false
+        }
+    );
+
+
+    /*
+       Use Three.js animation loop.
+    */
+
+    renderer.setAnimationLoop(
+        animate
+    );
+
+
+    resizeThree();
+
+}
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+function resizeThree() {
+
+    if (
+        !renderer ||
+        !camera
+    ) {
+        return;
+    }
+
+
+    const width =
+        Math.max(
+            container.clientWidth,
+            1
+        );
+
+
+    const height =
+        Math.max(
+            container.clientHeight,
+            1
+        );
+
+
+    camera.aspect =
+        width / height;
+
+
+    camera.updateProjectionMatrix();
+
+
+    renderer.setSize(
+        width,
+        height,
+        false
+    );
+
+}
+
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+function animate() {
+
+    if (moleculeGroup) {
+
+        if (!dragging) {
+
+            rotY += 0.004;
+
+        }
+
+
+        moleculeGroup.rotation.y =
+            rotY;
+
+        moleculeGroup.rotation.x =
+            rotX;
+
+    }
+
+
+    if (
+        renderer &&
+        scene &&
+        camera
+    ) {
+
+        renderer.render(
+            scene,
+            camera
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CLEAR MOLECULE
+========================================================= */
+
+function clearMolecule() {
+
+    if (!moleculeGroup) {
+        return;
+    }
+
+
+    while (
+        moleculeGroup.children.length
+    ) {
+
+        const object =
+            moleculeGroup.children.pop();
+
+
+        object.traverse(
+            child => {
+
+                if (child.geometry) {
+
+                    child.geometry.dispose();
+
+                }
+
+
+                if (child.material) {
+
+                    if (
+                        Array.isArray(
+                            child.material
+                        )
+                    ) {
+
+                        child.material.forEach(
+                            material =>
+                                material.dispose()
+                        );
+
+                    } else {
+
+                        child.material.dispose();
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ATOM COLORS
+========================================================= */
+
+const atomColors = {
+
+    H:  0xf2f2f2,
+
+    O:  0xff3b3b,
+
+    C:  0x555555,
+
+    N:  0x4b75ff,
+
+    Cl: 0x45d96b,
+
+    Na: 0xffd34d,
+
+    Ca: 0xaaaaaa
+
+};
+
+
+/* =========================================================
+   CREATE ATOM
+========================================================= */
+
+function createAtom(
+    element,
+    position
+) {
+
+    const radiusMap = {
+
+        H: 0.48,
+
+        O: 0.68,
+
+        C: 0.72,
+
+        N: 0.68,
+
+        Cl: 0.80,
+
+        Na: 0.90,
+
+        Ca: 0.95
+
+    };
+
+
+    const radius =
+        radiusMap[element] || 0.7;
+
+
+    const geometry =
+        new THREE.SphereGeometry(
+            radius,
+            32,
+            24
+        );
+
+
+    const material =
+        new THREE.MeshStandardMaterial({
+
+            color:
+                atomColors[element] ||
+                0xffffff,
+
+            roughness: 0.35,
+
+            metalness: 0.05
+
+        });
+
+
+    const atom =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+
+    atom.position.copy(
+        position
+    );
+
+
+    moleculeGroup.add(
+        atom
+    );
+
+
+    return atom;
+
+}
+
+
+/* =========================================================
+   CREATE BOND
+========================================================= */
+
+function createBond(
+    a,
+    b
+) {
+
+    const start =
+        a.position.clone();
+
+    const end =
+        b.position.clone();
+
+
+    const direction =
+        new THREE.Vector3()
+            .subVectors(
+                end,
+                start
+            );
+
+
+    const length =
+        direction.length();
+
+
+    const geometry =
+        new THREE.CylinderGeometry(
+            0.12,
+            0.12,
+            length,
+            16
+        );
+
+
+    const material =
+        new THREE.MeshStandardMaterial({
+
+            color: 0xb7c3d1,
+
+            roughness: 0.45
+
+        });
+
+
+    const bond =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+
+    bond.position.copy(
+        start
+    ).add(
+        end
+    ).multiplyScalar(
+        0.5
+    );
+
+
+    bond.quaternion.setFromUnitVectors(
+        new THREE.Vector3(
+            0,
+            1,
+            0
+        ),
+        direction.normalize()
+    );
+
+
+    moleculeGroup.add(
+        bond
+    );
+
+}
+
+
+/* =========================================================
+   ADD MOLECULE
+========================================================= */
+
+function addMolecule(
+    atoms,
+    bonds
+) {
+
+    const atomObjects = [];
+
+
+    atoms.forEach(atom => {
+
+        atomObjects.push(
+            createAtom(
+                atom.element,
+                new THREE.Vector3(
+                    atom.x,
+                    atom.y,
+                    atom.z
+                )
+            )
+        );
+
+    });
+
+
+    bonds.forEach(pair => {
+
+        const a =
+            atomObjects[pair[0]];
+
+        const b =
+            atomObjects[pair[1]];
+
+
+        if (a && b) {
+
+            createBond(
+                a,
+                b
+            );
+
+        }
+
+    });
+
+}
+
+
+/* =========================================================
+   SHOW MOLECULE
+========================================================= */
+
+function showMolecule(item) {
+
+    if (!THREE_READY ||
+        !moleculeGroup) {
+        return;
+    }
+
+
+    clearMolecule();
+
+
+    viewerTitle.textContent =
+        item.name +
+        " • " +
+        item.symbol;
+
+
+    /*
+       Hydrogen
+    */
+
+    if (item.id === "H2") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "H",
+                    x: -0.55,
+                    y: 0,
+                    z: 0
+                },
+
+                {
+                    element: "H",
+                    x: 0.55,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            [
+                [0,1]
+            ]
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Oxygen
+    */
+
+    if (item.id === "O2") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "O",
+                    x: -0.75,
+                    y: 0,
+                    z: 0
+                },
+
+                {
+                    element: "O",
+                    x: 0.75,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            [
+                [0,1]
+            ]
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Nitrogen
+    */
+
+    if (item.id === "N2") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "N",
+                    x: -0.72,
+                    y: 0,
+                    z: 0
+                },
+
+                {
+                    element: "N",
+                    x: 0.72,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            [
+                [0,1]
+            ]
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Chlorine
+    */
+
+    if (item.id === "Cl2") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "Cl",
+                    x: -0.85,
+                    y: 0,
+                    z: 0
+                },
+
+                {
+                    element: "Cl",
+                    x: 0.85,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            [
+                [0,1]
+            ]
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Water
+    */
+
+    if (item.id === "H2O") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "O",
+                    x: 0,
+                    y: 0.2,
+                    z: 0
+                },
+
+                {
+                    element: "H",
+                    x: -0.8,
+                    y: -0.35,
+                    z: 0
+                },
+
+                {
+                    element: "H",
+                    x: 0.8,
+                    y: -0.35,
+                    z: 0
+                }
+            ],
+
+            [
+                [0,1],
+                [0,2]
+            ]
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Carbon dioxide
+    */
+
+    if (item.id === "CO2") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "O",
+                    x: -1.15,
+                    y: 0,
+                    z: 0
+                },
+
+                {
+                    element: "C",
+                    x: 0,
+                    y: 0,
+                    z: 0
+                },
+
+                {
+                    element: "O",
+                    x: 1.15,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            [
+                [0,1],
+                [1,2]
+            ]
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Carbon
+    */
+
+    if (item.id === "C") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "C",
+                    x: 0,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            []
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Sodium
+    */
+
+    if (item.id === "Na") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "Na",
+                    x: 0,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            []
+
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Calcium
+    */
+
+    if (item.id === "Ca") {
+
+        addMolecule(
+
+            [
+                {
+                    element: "Ca",
+                    x: 0,
+                    y: 0,
+                    z: 0
+                }
+            ],
+
+            []
+
+        );
+
+        return;
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOW PRODUCT MOLECULE
+========================================================= */
+
+function showProductMolecule(
+    productId
+) {
+
+    const item =
+        substances.find(
+            substance =>
+                substance.id === productId
+        );
+
+
+    if (item) {
+
+        showMolecule(item);
+
+    }
+
+
+    /*
+       Products not yet in substance list.
+    */
+
+    if (
+        productId === "NH3"
+    ) {
+
+        clearMolecule();
+
+        viewerTitle.textContent =
+            "Ammonia • NH₃";
+
+
+        addMolecule(
+
+            [
+                {
+                    element: "N",
+                    x: 0,
+                    y: 0.25,
+                    z: 0
+                },
+
+                {
+                    element: "H",
+                    x: -0.85,
+                    y: -0.35,
+                    z: 0
+                },
+
+                {
+                    element: "H",
+                    x: 0.85,
+                    y: -0.35,
+                    z: 0
+                },
+
+                {
+                    element: "H",
+                    x: 0,
+                    y: -0.35,
+                    z: 0.85
+                }
+
+            ],
+
+            [
+                [0,1],
+                [0,2],
+                [0,3]
+            ]
+
+        );
+
+    }
+
+
+    if (
+        productId === "NaCl"
+    ) {
+
+        clearMolecule();
+
+        viewerTitle.textContent =
+            "Sodium chloride • NaCl";
+
+
+        addMolecule(
+
+            [
+                {
+                    element: "Na",
+                    x: -0.75,
+                    y: 0,
+                    z: 0
+                },
+
+                {
+                    element: "Cl",
+                    x: 0.75,
+                    y: 0,
+                    z: 0
+                }
+
+            ],
+
+            [
+                [0,1]
+            ]
+
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RUN REACTION
+========================================================= */
+
+function runReaction() {
+
+    if (
+        selectedReactants.length < 2
+    ) {
+
+        formulaBox.textContent =
+            "Select at least 2 reactants.";
+
+        resultName.textContent =
+            "Choose substances from the left panel.";
+
+        return;
+
+    }
+
+
+    const current =
+        [...selectedReactants]
+            .sort();
+
+
+    const reaction =
+        reactions.find(
+            item => {
+
+                const expected =
+                    [...item.reactants]
+                        .sort();
+
+                return (
+                    JSON.stringify(
+                        expected
+                    ) ===
+                    JSON.stringify(
+                        current
+                    )
+                );
+
+            }
+        );
+
+
+    if (!reaction) {
+
+        formulaBox.textContent =
+            "No reaction in database";
+
+        resultName.textContent =
+            "This educational simulator does not contain this reaction yet.";
+
+        return;
+
+    }
+
+
+    formulaBox.textContent =
+        reaction.formula;
+
+
+    resultName.textContent =
+        reaction.name;
+
+
+    showProductMolecule(
+        reaction.product
+    );
+
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+function resetExperiment() {
+
+    selectedReactants = [];
+
+    selectedConditions = [];
+
+
+    document
+        .querySelectorAll(".condition")
+        .forEach(button => {
+
+            button.classList.remove(
+                "selected"
+            );
+
+        });
+
+
+    renderReactants();
+
+
+    formulaBox.textContent =
+        "—";
+
+
+    resultName.textContent =
+        "Select reactants and run a reaction.";
+
+
+    viewerTitle.textContent =
+        "Select a substance";
+
+
+    clearMolecule();
+
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+runButton.addEventListener(
+    "click",
+    runReaction
+);
+
+
+resetButton.addEventListener(
+    "click",
+    resetExperiment
+);
+
+
+/*
+   Expose functions globally too.
+*/
+
+window.runReaction =
+    runReaction;
+
+window.resetExperiment =
+    resetExperiment;
+
+
+/* =========================================================
+   START APP
+========================================================= */
+
+renderSubstances();
+
+renderReactants();
+
+
+/* =========================================================
+   START 3D
+========================================================= */
+
+(async function startChemLab3D() {
+
+    try {
+
+        await loadThree();
+
+        initThree();
+
+    } catch (error) {
+
+        console.error(
+            "ChemLab 3D startup error:",
+            error
+        );
+
+
+        showViewerError(
+
+            "3D viewer could not start",
+
+            "The 3D graphics library could not be loaded. Check your internet connection and refresh the page."
+
+        );
+
+    }
+
+})();
+
+</script>
+
+</body>
+</html>
