@@ -1,13 +1,80 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Test</title></head>
-<body style="font:20px sans-serif;padding:20px">
-<h2>✅ GitHub Pages is working</h2>
-<p id="a">Checking 3D support…</p><p id="b">Checking 3D library…</p>
-<script>
-var c=document.createElement('canvas');
-document.getElementById('a').textContent=(c.getContext('webgl')||c.getContext('experimental-webgl'))?'✅ 3D (WebGL) works on this device':'❌ 3D (WebGL) is NOT available on this device';
-</script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ChemLab 3D</title>
+<style>
+:root{--bg:#f3f5fa;--card:#fff;--tx:#141a2e;--mu:#667090;--ac:#2f6bff;--bd:#d9dfee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1020;--card:#161c33;--tx:#eef1fb;--mu:#8f99ba;--bd:#283052}}
+:root[data-theme="dark"]{--bg:#0c1020;--card:#161c33;--tx:#eef1fb;--mu:#8f99ba;--bd:#283052}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0 auto;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:12px;max-width:640px}
+h1{font-size:20px;margin:4px 0 10px}
+#stage{height:300px;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#26326e,#090c1b)}
+canvas{width:100%;height:100%;display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin:10px 0}
+#eq{font-size:20px;font-weight:600;text-align:center;min-height:30px}
+#hint{color:var(--mu);font-size:13px;text-align:center;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.g4{grid-template-columns:repeat(4,1fr)}
+button{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:9px 4px;cursor:pointer}
+button small{display:block;color:var(--mu);font-size:10px}
+button.on{border-color:var(--ac);background:var(--ac);color:#fff}button.on small{color:#dfe8ff}
+button:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:8px;margin:8px 0}.row button{flex:1}
+.go{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
+h3{font-size:14px;margin:14px 0 4px;color:var(--mu);font-weight:600}
+#q{width:100%;padding:10px 12px;margin-top:10px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit}#chips{max-height:232px;overflow-y:auto}#conc{margin:0}
+#res .e{font-size:19px;font-weight:700;margin:6px 0}
+</style></head><body>
+<h1>⚗️ ChemLab 3D</h1>
+<div id="err" style="display:none;background:#b3261e;color:#fff;padding:10px;border-radius:10px;margin-bottom:8px;font-size:13px"></div>
+<div id="stage"><canvas></canvas></div>
+<div class="card"><div id="eq">Pick a substance</div><div id="hint"></div></div>
+<input id="q" type="search" placeholder="🔍 Search substances (acid, Cu, salt, gas…)">
+<div class="row" id="conc" style="display:none"><button data-k="d">💧 Dilute</button><button data-k="c">🧪 Concentrated</button></div>
+<div class="grid" id="chips"></div>
+<div class="row"><button id="plus">＋ Add sign</button><button id="end">✓ End reactants</button></div>
+<h3>Catalyst</h3><div class="grid g4" id="cats"></div>
+<h3>Heat</h3><div class="row"><button id="heat">🔥 Heat: OFF</button></div>
+<div class="row"><button class="go" id="go">▶ React</button><button id="reset">↺ Reset</button></div>
+<div class="card" id="res" style="display:none"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-document.getElementById('b').textContent=window.THREE?'✅ 3D library loaded':'❌ 3D library did not load (internet or blocked)';
-</script>
-</body></html>
+const $=s=>document.querySelector(s);
+window.onerror=function(m,u,l){var e=document.getElementById('err');e.style.display='block';e.textContent='Error: '+m+' (line '+l+')'};
+let G3=false;try{const t=document.createElement('canvas');G3=!!(window.THREE&&(t.getContext('webgl')||t.getContext('experimental-webgl')))}catch(e){}
+if(!G3){$('#stage').innerHTML='<div style="color:#fff;padding:24px;text-align:center;font-size:14px">3D view is not available on this device or browser. Everything else still works: pick substances, react, and read the result below.</div>';const D=()=>new Proxy(function(){},{get:(t,k)=>k===Symbol.toPrimitive?()=>0:k==='children'?[]:D(),apply:()=>D(),construct:()=>D(),set:()=>true});window.THREE=D()}
+const EL={H:[0xf2f2f2,.32],O:[0xff4040,.46],C:[0x4b515c,.5],N:[0x3d6bff,.46],Cl:[0x3ddc66,.62],Na:[0xb36bff,.72],Mg:[0x9be36b,.62],Ca:[0xe6cf9f,.75],Cu:[0xd8793a,.62],K:[0x8f5bd6,.8],Zn:[0x8fa0b8,.6],Fe:[0xb5651d,.6],Ag:[0xcdd3da,.7],Ba:[0x6fbf5a,.85],S:[0xf2d83a,.55]};
+const A=s=>s.split(';').map(a=>{const p=a.split(' ');return[p[0],+p[1],+p[2],+p[3]]});
+const so4=c=>`S 0 0 0;O .81 .81 .81;O .81 -.81 -.81;O -.81 .81 -.81;O -.81 -.81 .81;${c} 1.62 1.62 1.62`,
+tri=(m,c)=>`${m} 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;${c} 2.65 0 0`,
+ip=(a,b)=>`${a} -.72 0 0;${b} .72 0 0`,mx2=m=>`${m} 0 0 0;Cl -1.45 0 0;Cl 1.45 0 0`,one=e=>`${e} 0 0 0`,
+NH3a='N 0 .15 0;H .9 -.35 0;H -.45 -.35 .78;H -.45 -.35 -.78';
+const M={
+H2:['Hydrogen','H₂','H -.38 0 0;H .38 0 0','gas'],O2:['Oxygen','O₂','O -.6 0 0;O .6 0 0','gas'],
+N2:['Nitrogen','N₂','N -.55 0 0;N .55 0 0','gas'],Cl2:['Chlorine','Cl₂','Cl -.7 0 0;Cl .7 0 0','gas'],
+CO2:['Carbon dioxide','CO₂','C 0 0 0;O -1.2 0 0;O 1.2 0 0','gas'],
+CH4:['Methane','CH₄','C 0 0 0;H .58 .58 .58;H .58 -.58 -.58;H -.58 .58 -.58;H -.58 -.58 .58','gas'],
+H2O:['Water','H₂O','O 0 -.3 0;H .8 .3 0;H -.8 .3 0','liquid'],
+H2O2:['Hydrogen peroxide','H₂O₂','O -.7 0 0;O .7 0 0;H -1.1 .9 0;H 1.1 -.5 .75','liquid'],
+HCl:['Hydrochloric acid','HCl','H -.65 0 0;Cl .65 0 0','acid',0xd8f0a0],
+H2SO4:['Sulfuric acid','H₂SO₄','S 0 0 0;O .81 .81 .81;O .81 -.81 -.81;O -.81 .81 -.81;O -.81 -.81 .81;H 1.3 1.3 1.3;H -1.3 -1.3 1.3','acid',0xe8e8c0],
+HNO3:['Nitric acid','HNO₃','N 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;H -1.1 1.7 0','acid',0xf0e090],
+CH3COOH:['Acetic acid (vinegar)','CH₃COOH','C -.72 0 0;C .72 0 0;O 1.3 1.05 0;O 1.4 -.9 0;H -1.1 1 0;H -1.1 -.5 .87;H -1.1 -.5 -.87;H 2.3 -.9 0','acid',0xe8c080],
+NaOH:['Sodium hydroxide','NaOH','Na -1.4 0 0;O 0 0 0;H .95 0 0','base',0xcfe0ff],
+KOH:['Potassium hydroxide','KOH','K -1.45 0 0;O 0 0 0;H .95 0 0','base',0xcfe0ff],
+NH3:['Ammonia','NH₃',NH3a,'base',0xd0f0ff],
+CaOH2:['Limewater','Ca(OH)₂','Ca 0 0 0;O -1.4 0 0;O 1.4 0 0;H -2.3 .3 0;H 2.3 .3 0','salt',0xe8f4ff],
+Na:['Sodium','Na',one('Na'),'metal'],K:['Potassium','K',one('K'),'metal'],Mg:['Magnesium','Mg',one('Mg'),'metal'],
+Zn:['Zinc','Zn',one('Zn'),'metal'],Fe:['Iron','Fe',one('Fe'),'metal'],Cu:['Copper','Cu',one('Cu'),'metal'],
+C:['Carbon','C',one('C'),'solid'],CuO:['Copper(II) oxide','CuO',ip('Cu','O'),'solid'],CaO:['Quicklime','CaO','Ca -.72 0 0;O .72 0 0','solid'],
+CaCO3:['Calcium carbonate (chalk)','CaCO₃',tri('C','Ca'),'solid'],Na2CO3:['Sodium carbonate','Na₂CO₃','C 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;Na 2.6 0 0;Na -1.3 2.25 0','solid'],
+NaHCO3:['Baking soda','NaHCO₃','C 0 0 0;O 1.2 0 0;O -.6 1.04 0;O -.6 -1.04 0;Na 2.6 0 0;H -1.1 1.7 0','solid'],
+NaCl:['Sodium chloride','NaCl',ip('Na','Cl'),'salt'],CuSO4:['Copper(II) sulfate','CuSO₄',so4('Cu'),'salt',0x2f86ff],
+AgNO3:['Silver nitrate','AgNO₃',tri('N','Ag'),'salt'],BaCl2:['Barium chloride','BaCl₂',mx2('Ba'),'salt'],
+MgO:['Magnesium oxide','MgO',ip('Mg','O'),'solid'],ZnCl2:['Zinc chloride','ZnCl₂',mx2('Zn'),'salt'],MgCl2:['Magnesium chloride','MgCl₂',mx2('Mg'),'salt'],
+KCl:['Potassium chloride','KCl',ip('K','Cl'),'salt'],CaCl2:['Calcium chloride','CaCl₂',mx2('Ca'),'salt'],
+ZnSO4:['Zinc sulfate','ZnSO₄',so4('Zn'),'salt'],FeSO4:['Iron(II) sulfate','FeSO₄',so4('Fe'),'salt',0x9fe0b0],
+Na2SO4:['Sodium sulfate','Na₂SO₄','S 0 0 0;O .81 .81 .81;O .81 -.81 -.81;O -.81 .81 -.81;O -.81 -.81 .81;Na 1.62 1.62 1.62;Na -1.62 -1.62 1.62','salt'],
+NaNO3:['Sodium nitrate','NaNO₃',tri('N','Na'),'salt'],AgCl:['Silver chloride','AgCl',ip('Ag','Cl'),'solid'],BaSO4:['Barium sulfate','BaSO₄',so4('Ba'),'solid'],
+CH3COON
